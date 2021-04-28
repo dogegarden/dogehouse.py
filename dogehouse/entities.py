@@ -218,7 +218,6 @@ class Room(Repr):
             creator_id (str): The id of the user who created the room.
             name (str): The name of the room.
             description (str): The description of the room.
-            created_at (str): When the room was created.
             is_private (bool): Whether or not the room is a private or public room
             count (int): The amount of users the room has.
             users (List[Union[User, UserPreview]]): A list of users whom reside in this room.
@@ -227,7 +226,6 @@ class Room(Repr):
         self.creator_id: str = creator_id
         self.name: str = name
         self.description: str = description
-        self.created_at: datetime = isoparse(created_at)
         self.is_private: bool = is_private
         self.count: int = count
         self.users: List[Union[User, UserPreview]] = users
@@ -249,9 +247,8 @@ class Room(Repr):
         Returns:
             Room: A parsed room object which contains the data from the dictionary.
         """
-        return Room(data["id"], data["creatorId"], data["name"], data["description"], data["inserted_at"],
-                    data["isPrivate"], data["numPeopleInside"],
-                    list(map(UserPreview.from_dict, data["peoplePreviewList"])))
+        return Room(data["id"], data["creatorId"], data["name"], data["description"], '',
+                    data["isPrivate"], 1, []) #TODO
 
 
 class Message(Repr):
