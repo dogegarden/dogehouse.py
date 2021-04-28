@@ -688,48 +688,10 @@ class DogeClient(Client):
                         continue
                 return (*data[0],) if len(data[0]) > 1 else data[0][0]
 
-<<<<<<< HEAD
-    async def fetch_user(self, argument: str, *, tick=0.5, timeout=60) -> User:
-        """Currently only calls the DogeClient.get_user method, will implement user fetching in the future tho."""
-        # try:
-        return self.get_user(argument)
-        # except MemberNotFound:
-        #     op = "get_user_profile"
-        #     fetch_id = str(uuid4())
-        #
-        #     async def user_fetch_task():
-        #         await self.__send(op, dict(userId=argument), fetch_id=fetch_id)
-        #         self.__fetches[fetch_id] = op
-        #         self.__waiting_for[op] = [*self.__waiting_for[op], fetch_id] if op in self.__waiting_for else [fetch_id]
-        #         passed = 0
-        #         while True:
-        #             print("fetch", passed)
-        #             passed += tick
-        #             await asyncio.sleep(tick)
-        #             if passed > timeout:
-        #                 self.__waiting_for[op].remove(fetch_id)
-        #                 raise asyncio.TimeoutError(f"wait_for event timed out while fetching user `{argument}`")
-        #             elif fetch_id in self.__waiting_for_fetches:
-        #                 data = self.__waiting_for_fetches[fetch_id]
-        #                 return data
-        #
-        #     task = asyncio.ensure_future(user_fetch_task())
-        #     return await task
-
-        # TODO: IMPLEMENT USER FETCHING
-        #     async def waiter():
-        #         return await self.wait_for("user_fetch", fetch_arguments=("get_user_profile", dict(userId=value)))
-
-        #     user = await waiter()
-
-        #     if user:
-        #         return user
-=======
     async def fetch_user(self, argument: str) -> Optional[User]:
         """
         Goes through the local cache to check if a user can be found.
         If no user has been found it will send a request to the server to try and fetch that user.
->>>>>>> 134de9535ed487551d22b01b4fb627c45f260f23
 
         Args:
             argument (str): The user argument
