@@ -2,6 +2,8 @@ dist/
 .vscode/
 .idea/
 */**/__pycache__/*
+venv/
+*.egg-info/
 
 # Testing scripts
 sample.py
