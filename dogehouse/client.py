@@ -63,7 +63,8 @@ def event(func: Awaitable, *, name: str = None):
     """
 
     def wrapper(_func: Awaitable):
-        listeners[(Convertor.convert_basic_types(name, str) if name else func.__name__).lower()] = [func, False]
+        listeners[(Convertor.convert_basic_types(name, str)
+                   if name else _func.__name__).lower()] = [_func, False]
 
     return wrapper(func) if func else wrapper
 
@@ -152,7 +153,8 @@ class DogeClient(Client):
 
     async def __send(self, opcode: str, data: dict, *, fetch_id: str = None):
         """Internal websocket sender method."""
-        raw_data = dict(op=opcode, d=data)
+        raw_data = dict(op=opcode, d=data,
+                        reference=str(uuid4()), version="0.2.0")
         if fetch_id:
             raw_data["fetchId"] = fetch_id
         await self.__socket.send(dumps(raw_data))
@@ -176,7 +178,6 @@ class DogeClient(Client):
 
             async def execute_command(command_name: str, ctx: Context, *args):
                 _command = self.__commands.get(command_name.lower())
-
                 if _command:
                     instance_id = f"{command_name}-{ctx.author.id}"
                     invoked_at = time()
@@ -229,11 +230,21 @@ class DogeClient(Client):
 
             info("Dogehouse: Starting event listener loop")
             while self.__active:
-                res: Dict[str, Union[Dict, Any]] = loads(await self.__socket.recv())
-                op = res if isinstance(res, str) else res.get("op")
-                if op == "auth-good":
-                    info("Dogehouse: Received client ready")
-                    self.user = User.from_dict(dict(res["d"]["user"]))
+                debug('waiting for a message')
+                res_json = await self.__socket.recv()
+                try:
+                    res: Dict[str, Union[Dict, Any]] = loads(res_json)
+                except:
+                    debug("Not json")
+                    debug(f'{res_json=}')
+                    continue
+
+                debug("Successfully parsed json")
+                op = res.get("op")
+                debug(f'{op=}')
+                if op == "auth:request:reply":
+                    info("Dogehouse: Auth successful")
+                    self.user = User.from_dict(dict(res["p"]))
                     await execute_listener("on_ready")
                 elif op == "new-tokens":
                     info("Dogehouse: Received new authorization tokens")
@@ -260,22 +271,24 @@ class DogeClient(Client):
                             await execute_listener("on_user_fetch", usr)
                 elif op == "you-joined-as-speaker":
                     await execute_listener("on_room_join", True)
-                elif op == "join_room_done":
-                    self.room = Room.from_dict(res["d"]["room"])
+                elif op == "room:create:reply":
+                    self.room = Room.from_dict(res["p"])
                     self.room.users.append(self.user)
-                    await self.__send("get_current_room_users", {})
+                    # TODO:
+                    # await self.__send("get_current_room_users", {})
                     # for user in self.room.users:
                     #     if not isinstance(user, User):
                     #         await self.__fetch("get_user_profile", dict(userId=user.id))
 
-                    # TODO: Check if joined as speaker 
+                    # TODO: Check if joined as speaker
                     await execute_listener("on_room_join", False)
                 elif op == "new_user_join_room":
                     user = User.from_dict(res["d"]["user"])
-                    self.room.users.append(user)
+                    # self.room.users.append(user)
                     await execute_listener("on_user_join", user)
                 elif op == "user_left_room":
-                    user = [user for user in self.room.users if user.id == res["d"]["userId"]][0]
+                    user = [user for user in self.room.users if user.id ==
+                            res["d"]["userId"]][0]
                     self.room.users.remove(user)
                     await execute_listener("on_user_leave", user)
                 elif op == "new_chat_msg":
@@ -348,6 +361,7 @@ class DogeClient(Client):
         async def heartbeat():
             debug("Dogehouse: Starting heartbeat")
             while self.__active:
+                debug("ping")
                 await self.__socket.send("ping")
                 await asyncio.sleep(heartbeatInterval)
 
@@ -373,15 +387,15 @@ class DogeClient(Client):
                 self.__socket = ws
 
                 info("Dogehouse: Attempting to authenticate")
-                await self.__send('auth', {
+                await self.__send('auth:request', {
                     "accessToken": self.__token,
                     "refreshToken": self.__refresh_token,
                     "reconnectToVoice": self.__reconnect_voice,
                     "muted": self.__muted,
                     "currentRoomId": self.room,
-                    "platform": "dogehouse.py"
+                    "platform": "dogehouse.py",
                 })
-                info("Dogehouse: Successfully authenticated")
+                # TODO: not waiting for successful authentication
 
                 event_loop_task = loop.create_task(event_loop())
                 get_top_rooms_task = loop.create_task(get_top_rooms_loop())
@@ -396,6 +410,10 @@ class DogeClient(Client):
         except ConnectionClosedError as e:
             if e.code == 4004:
                 raise InvalidAccessToken()
+            else:
+                print_exc()
+        except:
+            print_exc()
 
     def run(self):
         """Establishes a connection to the websocket servers."""
@@ -505,7 +523,7 @@ class DogeClient(Client):
             public (bool, optional): Whether or not the room should be publicly visible. Defaults to True.
         """
         if 2 <= len(name) <= 60:
-            return await self.__fetch("create_room", dict(name=str(name), description=str(description),
+            return await self.__fetch("room:create", dict(name=str(name), description=str(description),
                                                           privacy="public" if public else "private"))
 
         raise InvalidSize("The `name` property length should be 2-60 characters long.")
@@ -543,7 +561,7 @@ class DogeClient(Client):
         Request in the current room to speak.
 
         Raises:
-            NoConnectionException: Gets raised when no room has been joined yet.   
+            NoConnectionException: Gets raised when no room has been joined yet.
         """
         if not self.room:
             raise NoConnectionException("No room has been joined yet.")
@@ -688,48 +706,10 @@ class DogeClient(Client):
                         continue
                 return (*data[0],) if len(data[0]) > 1 else data[0][0]
 
-<<<<<<< HEAD
-    async def fetch_user(self, argument: str, *, tick=0.5, timeout=60) -> User:
-        """Currently only calls the DogeClient.get_user method, will implement user fetching in the future tho."""
-        # try:
-        return self.get_user(argument)
-        # except MemberNotFound:
-        #     op = "get_user_profile"
-        #     fetch_id = str(uuid4())
-        #
-        #     async def user_fetch_task():
-        #         await self.__send(op, dict(userId=argument), fetch_id=fetch_id)
-        #         self.__fetches[fetch_id] = op
-        #         self.__waiting_for[op] = [*self.__waiting_for[op], fetch_id] if op in self.__waiting_for else [fetch_id]
-        #         passed = 0
-        #         while True:
-        #             print("fetch", passed)
-        #             passed += tick
-        #             await asyncio.sleep(tick)
-        #             if passed > timeout:
-        #                 self.__waiting_for[op].remove(fetch_id)
-        #                 raise asyncio.TimeoutError(f"wait_for event timed out while fetching user `{argument}`")
-        #             elif fetch_id in self.__waiting_for_fetches:
-        #                 data = self.__waiting_for_fetches[fetch_id]
-        #                 return data
-        #
-        #     task = asyncio.ensure_future(user_fetch_task())
-        #     return await task
-
-        # TODO: IMPLEMENT USER FETCHING
-        #     async def waiter():
-        #         return await self.wait_for("user_fetch", fetch_arguments=("get_user_profile", dict(userId=value)))
-
-        #     user = await waiter()
-
-        #     if user:
-        #         return user
-=======
     async def fetch_user(self, argument: str) -> Optional[User]:
         """
         Goes through the local cache to check if a user can be found.
         If no user has been found it will send a request to the server to try and fetch that user.
->>>>>>> 134de9535ed487551d22b01b4fb627c45f260f23
 
         Args:
             argument (str): The user argument
