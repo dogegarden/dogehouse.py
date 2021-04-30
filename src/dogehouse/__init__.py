@@ -1,7 +1,7 @@
 import asyncio
 import functools
 import json
-from logging import debug, info
+from logging import info
 from typing import Any, Callable, Dict, Optional
 from uuid import uuid4
 
@@ -10,16 +10,15 @@ from websockets import WebSocketClientProtocol
 from websockets.exceptions import WebSocketException
 
 from .entities import (
-    ApiData, Callback,
+    ApiData, Callback, Event,
     MessageEvent, ReadyEvent, RoomJoinEvent,
-    Room,  User,
+    Room,  User, UserJoinEvent,
 )
 from .events import (
-    ON_MESSAGE, ON_READY, ON_ROOM_JOIN,
-    NEW_TOKENS, ROOM_CREATED,
-    ROOM_CREATE, ROOM_CREATE_REPLY, SEND_MESSAGE,
+    READY, ON_MESSAGE, ROOM_CREATED,
+    ROOM_CREATE, ROOM_CREATE_REPLY, SEND_MESSAGE, USER_JOINED,
 )
-from .parsers import parse_message_event, parse_room, parse_room_created, parse_user
+from .parsers import parse_message_event, parse_room, parse_room_created, parse_auth, parse_user_joined
 from .util import format_response, tokenize_message
 
 api_url = "wss://api.dogehouse.tv/socket"
@@ -59,9 +58,6 @@ class DogeClient:
             privacy="public" if public else "private",
         )
 
-        roomData = await self._wait_for(ROOM_CREATE_REPLY)
-        self.room = parse_room(roomData)
-
     async def send_message(self, message: str) -> None:
         if not self.room:
             raise RuntimeError("No room has been joined yet!")
@@ -75,9 +71,10 @@ class DogeClient:
     ############################## Events ##############################
 
     event_parsers: Dict[str, Callable[['DogeClient', ApiData], Any]] = {
+        ROOM_CREATE_REPLY: parse_room,
         ROOM_CREATED: parse_room_created,
         ON_MESSAGE: parse_message_event,
-        # YOU_JOINED_AS_SPEAKER: parse_room_voice,
+        USER_JOINED: parse_user_joined,
     }
 
     async def new_event(self, data: ApiData) -> None:
@@ -92,7 +89,7 @@ class DogeClient:
 
         await self.run_callback(event_name, event)
 
-    async def run_callback(self, event_name: str, event: Any) -> None:
+    async def run_callback(self, event_name: str, event: Event) -> None:
         callback = self.event_hooks.get(event_name)
         if callback is None:
             return
@@ -100,11 +97,15 @@ class DogeClient:
         await callback(event)
 
     def on_ready(self, callback: Callback[ReadyEvent]) -> Callback[ReadyEvent]:
-        self.event_hooks[ON_READY] = callback
+        self.event_hooks[READY] = callback
         return callback
 
     def on_room_join(self, callback: Callback[RoomJoinEvent]) -> Callback[RoomJoinEvent]:
         self.event_hooks[ROOM_CREATED] = callback
+        return callback
+
+    def on_user_join(self, callback: Callback[UserJoinEvent]) -> Callback[UserJoinEvent]:
+        self.event_hooks[USER_JOINED] = callback
         return callback
 
     def on_message(self, callback: Callback[MessageEvent]) -> Callback[MessageEvent]:
@@ -143,7 +144,7 @@ class DogeClient:
 
         return ref
 
-    async def _recv(self) -> str:
+    async def _recv(self) -> websockets.Data:
         if self._socket is None:
             raise WebSocketException("Socket not initialized")
 
@@ -183,9 +184,9 @@ class DogeClient:
         assert self._socket is not None
         auth_response = await self._recv()
         data = format_response(auth_response)
-        self.user = parse_user(data)
+        self.user = parse_auth(data)
 
-        await self.run_callback(ON_READY, ReadyEvent(self.user))
+        await self.run_callback(READY, ReadyEvent(self.user))
 
     async def _get_raw_events(self) -> None:
         while self._socket is not None:

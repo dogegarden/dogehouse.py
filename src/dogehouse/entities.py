@@ -43,8 +43,12 @@ class RoomJoinEvent(NamedTuple):
     as_speaker: bool
 
 
+class UserJoinEvent(NamedTuple):
+    user: User
+
+
 class MessageEvent(NamedTuple):
     message: Message
 
 
-Event = Union[ReadyEvent, RoomJoinEvent, MessageEvent]
+Event = Union[ReadyEvent, RoomJoinEvent, UserJoinEvent, MessageEvent]

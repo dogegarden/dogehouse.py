@@ -1,15 +1,24 @@
-import typing
-from dogehouse.util import parse_tokens_to_message
-from .entities import ApiData, Message, MessageEvent, Room, RoomJoinEvent, User
+from typing import Optional, TYPE_CHECKING
 
-if typing.TYPE_CHECKING:
+from dogehouse.util import parse_tokens_to_message
+
+from .entities import (ApiData, Message, MessageEvent, Room, RoomJoinEvent,
+                       User, UserJoinEvent)
+
+if TYPE_CHECKING:
     from dogehouse import DogeClient
 
 
-def parse_user(data: ApiData) -> User:
+def parse_auth(data: ApiData) -> User:
     user_dict = data.get('p')
+
+    user = parse_user(user_dict)
+    return user
+
+
+def parse_user(user_dict: Optional[ApiData]) -> User:
     if user_dict is None or not isinstance(user_dict, dict):
-        raise TypeError(f"Bad response for user: {data}")
+        raise TypeError(f"Bad response for user: {user_dict}")
 
     user = User(
         id=user_dict['id'],
@@ -35,7 +44,7 @@ def parse_room_created(doge: 'DogeClient', data: ApiData) -> RoomJoinEvent:
     )
 
 
-def parse_room(data: ApiData) -> Room:
+def parse_room(doge: 'DogeClient', data: ApiData) -> Room:
     room_dict = data.get('p')
     if room_dict is None or not isinstance(room_dict, dict):
         raise TypeError(f"Bad response for room: {data}")
@@ -47,7 +56,15 @@ def parse_room(data: ApiData) -> Room:
         description=room_dict['description'],
         is_private=room_dict['isPrivate'],
     )
+    doge.room = room
     return room
+
+
+def parse_user_joined(doge: 'DogeClient', data: ApiData) -> UserJoinEvent:
+    data_dict = data.get('d', {})
+    user_dict = data_dict.get('user')
+    user = parse_user(user_dict)
+    return UserJoinEvent(user)
 
 
 def parse_message_event(doge: 'DogeClient', data: ApiData) -> MessageEvent:
