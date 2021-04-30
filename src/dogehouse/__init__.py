@@ -143,11 +143,20 @@ class DogeClient:
 
         return ref
 
+    async def _recv(self) -> str:
+        if self._socket is None:
+            raise WebSocketException("Socket not initialized")
+
+        while True:
+            message = await self._socket.recv()
+            if len(message) > 0:
+                return message
+
     async def _wait_for(self, opcode: str) -> ApiData:
         if self._socket is None:
             raise WebSocketException("Socket not initialized")
 
-        response = await self._socket.recv()
+        response = await self._recv()
         data = format_response(response)
         if data.get('op') != opcode:
             raise ValueError(f"expected '{opcode}', got {data}")
@@ -172,7 +181,7 @@ class DogeClient:
 
     async def _authenticate(self) -> None:
         assert self._socket is not None
-        auth_response = await self._socket.recv()
+        auth_response = await self._recv()
         data = format_response(auth_response)
         self.user = parse_user(data)
 
@@ -180,7 +189,7 @@ class DogeClient:
 
     async def _get_raw_events(self) -> None:
         while self._socket is not None:
-            response = await self._socket.recv()
+            response = await self._recv()
             data = format_response(response)
             await self.new_event(data)
 
