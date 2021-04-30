@@ -1,15 +1,9 @@
-import logging
-
 from dogehouse import DogeClient
-from dogehouse.entities import (MessageEvent, ReadyEvent, RoomJoinEvent,
-                                UserJoinEvent)
-
-# logging.basicConfig(level=logging.DEBUG,
-#                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+from dogehouse.entities import MessageEvent, ReadyEvent, RoomJoinEvent, UserJoinEvent
 
 
-token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJKb2tlbiIsImV4cCI6MTYxOTc4MzQ5MywiaWF0IjoxNjE5Nzc5ODkzLCJpc3MiOiJKb2tlbiIsImp0aSI6IjJwdDlxZXBiZ29zcDNmZ21hbzAxMjdsMSIsIm5iZiI6MTYxOTc3OTg5MywidXNlcklkIjoiZDA3NGUyYmMtYjY1MS00NDRmLTgyMGUtYjExMTRhNDZkNmU1In0.gTDf8jI-BL9IpNEQBJ6n2koz_aXPl4jXba9fgkGyH70"
-refresh_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJKb2tlbiIsImV4cCI6MTYyMjM3MTg5MywiaWF0IjoxNjE5Nzc5ODkzLCJpc3MiOiJKb2tlbiIsImp0aSI6IjJwdDlxZXBiaDQ5bjdmZ21hbzAxMjdtMSIsIm5iZiI6MTYxOTc3OTg5MywidG9rZW5WZXJzaW9uIjoxLCJ1c2VySWQiOiJkMDc0ZTJiYy1iNjUxLTQ0NGYtODIwZS1iMTExNGE0NmQ2ZTUifQ.31a8nOvfqaW3ZbEBbnGJ6nyaZbcBzXP2eRmpfDPZG1g"
+token = "your user token"
+refresh_token = "refresh token"
 
 doge = DogeClient(token, refresh_token)
 
