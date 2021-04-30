@@ -1,44 +1,32 @@
-# -*- coding: utf-8 -*-
-# MIT License
+import logging
 
-# Copyright (c) 2021 Arthur
+from dogehouse import DogeClient
+from dogehouse.entities import Event, MessageEvent, ReadyEvent, RoomJoinEvent
 
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-from dogehouse import DogeClient, event, command
-from dogehouse.entities import User
+# logging.basicConfig(level=logging.DEBUG,
+#                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
-class Client(DogeClient):
-    @event
-    async def on_ready(self):
-        print(f"Successfully connected as {self.user}!")
-        await self.create_room("Hello World!")
+token = "your user token"
+refresh_token = "refresh token"
 
-    @event
-    async def on_user_join(self, user: User):
-        await self.send(f"Welcome {user.mention}")
-
-    @command
-    async def say(self, _, *, message: str):
-        await self.send(message)
+doge = DogeClient(token, refresh_token)
 
 
-if __name__ == "__main__":
-    Client("YourToken", "YourRefreshToken", prefix=".").run()
+@doge.on_ready
+async def make_my_room(event: ReadyEvent) -> None:
+    print(f"Successfully connected as @{event.user.username}!")
+    await doge.create_room("Hello World!")
+
+
+@doge.on_room_join
+async def joined_room(event: RoomJoinEvent) -> None:
+    print("Joined room", event.room.name)
+
+
+@doge.on_message
+async def echo(event: MessageEvent) -> None:
+    await doge.send_message(f'@{event.message.author} said {event.message.content}')
+
+
+doge.run()

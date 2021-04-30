@@ -1,1 +1,0 @@
-©Copyright 2021-present, [Arthurdw](https://www.arthurdw.com).
