@@ -24,12 +24,12 @@ class Room(NamedTuple):
     name: str
     description: str
     is_private: bool
-    # users: List[Union[User, UserPreview]] # TODO
+    users: Dict[str, User]
 
 
 class Message(NamedTuple):
     id: str
-    author: str  # TODO: pass User object here
+    author: User
     content: str
     is_whisper: bool
 
@@ -47,8 +47,19 @@ class UserJoinEvent(NamedTuple):
     user: User
 
 
+class UserLeaveEvent(NamedTuple):
+    room_id: str
+    user: User
+
+
 class MessageEvent(NamedTuple):
     message: Message
 
 
-Event = Union[ReadyEvent, RoomJoinEvent, UserJoinEvent, MessageEvent]
+Event = Union[
+    ReadyEvent,
+    RoomJoinEvent,
+    UserJoinEvent,
+    UserLeaveEvent,
+    MessageEvent,
+]

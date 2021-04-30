@@ -12,13 +12,16 @@ from websockets.exceptions import WebSocketException
 from .entities import (
     ApiData, Callback, Event,
     MessageEvent, ReadyEvent, RoomJoinEvent,
-    Room,  User, UserJoinEvent,
+    Room,  User, UserJoinEvent, UserLeaveEvent,
 )
 from .events import (
-    READY, ON_MESSAGE, ROOM_CREATED,
-    ROOM_CREATE, ROOM_CREATE_REPLY, SEND_MESSAGE, USER_JOINED,
+    READY, ON_MESSAGE, ROOM_CREATED, USER_JOINED, SEND_MESSAGE,
+    CREATE_ROOM, USER_LEFT
 )
-from .parsers import parse_message_event, parse_room, parse_room_created, parse_auth, parse_user_joined
+from .parsers import (
+    parse_auth, parse_message_event,
+    parse_room_created, parse_user_joined, parse_user_left
+)
 from .util import format_response, tokenize_message
 
 api_url = "wss://api.dogehouse.tv/socket"
@@ -52,7 +55,7 @@ class DogeClient:
             )
 
         await self._send(
-            ROOM_CREATE,
+            CREATE_ROOM,
             name=name,
             description=description,
             privacy="public" if public else "private",
@@ -70,11 +73,11 @@ class DogeClient:
 
     ############################## Events ##############################
 
-    event_parsers: Dict[str, Callable[['DogeClient', ApiData], Any]] = {
-        ROOM_CREATE_REPLY: parse_room,
+    event_parsers: Dict[str, Callable[['DogeClient', ApiData], Event]] = {
         ROOM_CREATED: parse_room_created,
         ON_MESSAGE: parse_message_event,
         USER_JOINED: parse_user_joined,
+        USER_LEFT: parse_user_left,
     }
 
     async def new_event(self, data: ApiData) -> None:
@@ -108,13 +111,17 @@ class DogeClient:
         self.event_hooks[USER_JOINED] = callback
         return callback
 
+    def on_user_leave(self, callback: Callback[UserLeaveEvent]) -> Callback[UserLeaveEvent]:
+        self.event_hooks[USER_LEFT] = callback
+        return callback
+
     def on_message(self, callback: Callback[MessageEvent]) -> Callback[MessageEvent]:
         @functools.wraps(callback)
         async def wrapped_callback(event: MessageEvent) -> None:
             if self.user is None:
                 raise ValueError("Received message, but User is not set")
 
-            if event.message.author == self.user.id:
+            if event.message.author.id == self.user.id:
                 return
 
             await callback(event)

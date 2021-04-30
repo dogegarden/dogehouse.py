@@ -2,7 +2,7 @@ import os
 
 from dogehouse import DogeClient
 from dogehouse.entities import (MessageEvent, ReadyEvent, RoomJoinEvent,
-                                UserJoinEvent)
+                                UserJoinEvent, UserLeaveEvent)
 
 token = os.getenv("TOKEN", '')
 refresh_token = os.getenv("REFRESH_TOKEN", '')
@@ -26,9 +26,14 @@ async def greet_user(event: UserJoinEvent) -> None:
     await doge.send_message(f"Hello @{event.user.username}")
 
 
+@doge.on_user_leave
+async def user_left(event: UserLeaveEvent) -> None:
+    await doge.send_message(f"Bye @{event.user.username}")
+
+
 @doge.on_message
 async def echo(event: MessageEvent) -> None:
-    await doge.send_message(f'@{event.message.author} said {event.message.content}')
+    await doge.send_message(f'@{event.message.author.username} said {event.message.content}')
 
 
 doge.run()
