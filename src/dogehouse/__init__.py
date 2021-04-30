@@ -11,16 +11,18 @@ from websockets.exceptions import WebSocketException
 
 from .entities import (
     ApiData, Callback, Event,
+    Room, User,
     MessageEvent, ReadyEvent, RoomJoinEvent,
-    Room,  User, UserJoinEvent, UserLeaveEvent,
+    UserJoinEvent, UserLeaveEvent,
 )
 from .events import (
-    READY, ON_MESSAGE, ROOM_CREATED, USER_JOINED, SEND_MESSAGE,
-    CREATE_ROOM, USER_LEFT
+    READY, MESSAGE,
+    CREATE_ROOM, ROOM_CREATED, USER_JOINED, USER_LEFT,
+    SEND_MESSAGE,
 )
 from .parsers import (
     parse_auth, parse_message_event,
-    parse_room_created, parse_user_joined, parse_user_left
+    parse_room_created, parse_user_joined, parse_user_left,
 )
 from .util import format_response, tokenize_message
 
@@ -75,12 +77,13 @@ class DogeClient:
 
     event_parsers: Dict[str, Callable[['DogeClient', ApiData], Event]] = {
         ROOM_CREATED: parse_room_created,
-        ON_MESSAGE: parse_message_event,
         USER_JOINED: parse_user_joined,
         USER_LEFT: parse_user_left,
+        MESSAGE: parse_message_event,
     }
 
     async def new_event(self, data: ApiData) -> None:
+        # TODO: error handling, data.get('e')
         event_name = data.get('op')
         if event_name not in self.event_parsers:
             return
@@ -126,7 +129,7 @@ class DogeClient:
 
             await callback(event)
 
-        self.event_hooks[ON_MESSAGE] = wrapped_callback
+        self.event_hooks[MESSAGE] = wrapped_callback
         return callback
 
     ######################### Internal methods #########################
@@ -159,17 +162,6 @@ class DogeClient:
             message = await self._socket.recv()
             if len(message) > 0:
                 return message
-
-    async def _wait_for(self, opcode: str) -> ApiData:
-        if self._socket is None:
-            raise WebSocketException("Socket not initialized")
-
-        response = await self._recv()
-        data = format_response(response)
-        if data.get('op') != opcode:
-            raise ValueError(f"expected '{opcode}', got {data}")
-
-        return data
 
     async def _start(self) -> None:
         await self._connect()

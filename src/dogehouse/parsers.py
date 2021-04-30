@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 def parse_auth(data: ApiData) -> User:
     user_dict = data.get('p')
     if user_dict is None or not isinstance(user_dict, dict):
+        # TODO: improve error messages here, e.g. for empty/wrong tokens
         raise TypeError(f"Bad response for user: {data}")
 
     user = parse_user(user_dict)
