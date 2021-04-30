@@ -1,10 +1,5 @@
-import logging
-
 from dogehouse import DogeClient
-from dogehouse.entities import Event, MessageEvent, ReadyEvent, RoomJoinEvent
-
-# logging.basicConfig(level=logging.DEBUG,
-#                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+from dogehouse.entities import MessageEvent, ReadyEvent, RoomJoinEvent
 
 
 token = "your user token"

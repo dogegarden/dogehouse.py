@@ -175,10 +175,6 @@ class DogeClient:
         auth_response = await self._socket.recv()
         data = format_response(auth_response)
         self.user = parse_user(data)
-        token_data = await self._wait_for(NEW_TOKENS)
-
-        debug(f"new tokens: {token_data}")
-        # TODO: use these tokens
 
         await self.run_callback(ON_READY, ReadyEvent(self.user))
 
