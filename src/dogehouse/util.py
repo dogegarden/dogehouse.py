@@ -1,4 +1,5 @@
 import json
+import re
 from json.decoder import JSONDecodeError
 from typing import Dict, List
 
@@ -51,49 +52,32 @@ def parse_token_to_message(token: Dict[str, str]) -> str:
     return fmt.format(value)
 
 
+TOKENIZE_REGEX = re.compile(r"( |`.*?`)")
+
+
 def tokenize_message(message: str) -> List[Dict[str, str]]:
-    return [tokenize_word(word) for word in message.split()]
+    return [tokenize(string)
+            for string in TOKENIZE_REGEX.split(message)
+            if string.strip()]
 
 
-def tokenize_word(word: str) -> Dict[str, str]:
-    """
-    Convert a word into a dogehouse message token.
+def tokenize(string: str) -> Dict[str, str]:
+    print(string)
+    type = "text"
 
-    Args:
-        word (str): The word that should be parsed.
+    if string.startswith("@") and len(string) > 2:
+        type = "mention"
+        string = string[1:]
 
-    Returns:
-        Dict[str, str]: A token which represents the word.
-    """
-    # TODO: Do some regex magic instead of this
-    t, v = "text", str(word)
-    if v.startswith("@") and len(v) >= 3:
-        t = "mention"
-        v = v[1:]
-    elif v.startswith("http") and len(v) >= 8:
-        t = "link"
-    elif v.startswith(":") and v.endswith(":") and len(v) >= 3:
-        t = "emote"
-        v = v[1:-1]
-    elif v.startswith("`") and v.endswith("`") and len(v) >= 3:
-        t = "block"
-        v = v[1:-1]
+    elif re.fullmatch(r"http[s]:\/\/.+", string, flags=re.IGNORECASE):
+        type = "link"
 
-    return dict(t=t, v=v)
+    elif string.startswith(":") and string.endswith(":") and len(string) > 2:
+        type = "emote"
+        string = string[1:-1]
 
+    elif string.startswith("`") and string.endswith("`") and len(string) > 2:
+        type = "block"
+        string = string[1:-1]
 
-# def parse_event(data: ApiData) -> Event:
-#     # if data.get('d') is None:
-#     #     raise TypeError(f"Bad response for event: {data}")
-
-#     user_dict = data.get('p')
-#     user = None if user_dict is None else parse_user(data)
-
-#     event = Event(
-#         id=data.get('id'),
-#         type=data.get('op'),
-#         message=data.get('msg'),
-#         user=user,
-#         room=data.get('room'),
-#     )
-#     return event
+    return dict(t=type, v=string)
