@@ -62,7 +62,6 @@ def tokenize_message(message: str) -> List[Dict[str, str]]:
 
 
 def tokenize(string: str) -> Dict[str, str]:
-    print(string)
     type = "text"
 
     if string.startswith("@") and len(string) > 2:
