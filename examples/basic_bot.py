@@ -1,9 +1,11 @@
+import os
+
 from dogehouse import DogeClient
-from dogehouse.entities import MessageEvent, ReadyEvent, RoomJoinEvent, UserJoinEvent
+from dogehouse.entities import (MessageEvent, ReadyEvent, RoomJoinEvent,
+                                UserJoinEvent)
 
-
-token = "your user token"
-refresh_token = "refresh token"
+token = os.getenv("TOKEN", '')
+refresh_token = os.getenv("REFRESH_TOKEN", '')
 
 doge = DogeClient(token, refresh_token)
 
