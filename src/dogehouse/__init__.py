@@ -88,7 +88,7 @@ class DogeClient:
         if event_name not in self.event_parsers:
             return
 
-        info(f'received {event_name=}')
+        info(f'received event: {event_name}')
 
         parser = self.event_parsers[event_name]
         event = parser(self, data)
