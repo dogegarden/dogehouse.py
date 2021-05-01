@@ -10,25 +10,15 @@
 Python wrapper for the dogehouse API
 ====================================
 
-NOTE:
------
-
-This project is now archived. Because of the latest update of the dogehouse API which changes a lot of things. And general issues with how the library was built.
-
-I'd like to say thank you for all the positive support for this project. It was great while it lasted! ♥
-
-& you are free to fork this repository to build out/release your own library.
-
 Documentation
 -------------
 
-You can find the documentation at `dogehouse.arthurdw.com <http://dogehouse.arthurdw.com/>`_
+You can find the documentation at https://wiki.dogegarden.net
 
 Installation
 ------------
 
 ``pip install dogehouse``
-
 
 Example
 --------
