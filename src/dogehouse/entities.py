@@ -1,4 +1,4 @@
-from typing import Any, Awaitable, Callable, Dict, NamedTuple, TypeVar, Union
+from typing import Any, Awaitable, Callable, Dict, List, NamedTuple, Optional, TypeVar, Union
 
 ApiData = Dict[str, Any]
 
@@ -11,6 +11,11 @@ class RawEvent(NamedTuple):
     data: Dict[str, str]
 
 
+class UserPreview(NamedTuple):
+    id: str
+    name: str
+
+
 class User(NamedTuple):
     id: str
     name: str
@@ -18,9 +23,18 @@ class User(NamedTuple):
     bio: str
 
 
-class Room(NamedTuple):
+class RoomPreview(NamedTuple):
     id: str
     creator_id: str
+    name: str
+    description: str
+    is_private: bool
+    users: Dict[str, UserPreview]
+
+
+class Room(NamedTuple):
+    id: str
+    creator_id: Optional[str]
     name: str
     description: str
     is_private: bool
@@ -36,6 +50,10 @@ class Message(NamedTuple):
 
 class ReadyEvent(NamedTuple):
     user: User
+
+
+class RoomsFetchedEvent(NamedTuple):
+    rooms: List[RoomPreview]
 
 
 class RoomJoinEvent(NamedTuple):
@@ -58,6 +76,7 @@ class MessageEvent(NamedTuple):
 
 Event = Union[
     ReadyEvent,
+    RoomsFetchedEvent,
     RoomJoinEvent,
     UserJoinEvent,
     UserLeaveEvent,

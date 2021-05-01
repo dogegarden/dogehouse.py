@@ -2,8 +2,8 @@ from typing import TYPE_CHECKING
 
 from dogehouse.util import parse_tokens_to_message
 
-from .entities import (ApiData, Message, MessageEvent, Room, RoomJoinEvent,
-                       User, UserJoinEvent, UserLeaveEvent)
+from .entities import (ApiData, Message, MessageEvent, Room, RoomJoinEvent, RoomPreview, RoomsFetchedEvent,
+                       User, UserJoinEvent, UserLeaveEvent, UserPreview)
 
 if TYPE_CHECKING:
     from dogehouse import DogeClient
@@ -31,10 +31,18 @@ def parse_user(user_dict: ApiData) -> User:
     return user
 
 
+def parse_user_preview(user_dict: ApiData) -> UserPreview:
+    user_preview = UserPreview(
+        id=user_dict['id'],
+        name=user_dict['displayName'],
+    )
+    return user_preview
+
+
 def parse_room(room_dict: ApiData) -> Room:
     room = Room(
         id=room_dict['id'],
-        creator_id=room_dict['creatorId'],
+        creator_id=room_dict.get('creatorId'),
         name=room_dict['name'],
         description=room_dict['description'],
         is_private=room_dict['isPrivate'],
@@ -43,9 +51,32 @@ def parse_room(room_dict: ApiData) -> Room:
     return room
 
 
+def parse_room_preview(room_dict: ApiData) -> RoomPreview:
+    user_previews = room_dict.get('peoplePreviewList', [])
+    room_preview = RoomPreview(
+        id=room_dict['id'],
+        creator_id=room_dict['creatorId'],
+        name=room_dict['name'],
+        description=room_dict['description'],
+        is_private=room_dict['isPrivate'],
+        users={user['id']: parse_user_preview(user) for user in user_previews}
+    )
+    return room_preview
+
 ############################# Event Parsers ############################
 
-def parse_room_created(doge: 'DogeClient', data: ApiData) -> RoomJoinEvent:
+
+def parse_rooms_fetched(doge: 'DogeClient', data: ApiData) -> RoomsFetchedEvent:
+    data_dict = data.get('p')
+    if data_dict is None or not isinstance(data_dict, dict):
+        raise TypeError(f"Bad response for top rooms: {data}")
+
+    rooms_data = data_dict['rooms']
+    rooms = [parse_room_preview(room) for room in rooms_data]
+    return RoomsFetchedEvent(rooms=rooms)
+
+
+def parse_room_joined(doge: 'DogeClient', data: ApiData) -> RoomJoinEvent:
     room_dict = data.get('p')
     if room_dict is None or not isinstance(room_dict, dict):
         raise TypeError(f"Bad response for room: {data}")

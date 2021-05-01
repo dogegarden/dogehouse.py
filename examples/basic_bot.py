@@ -1,7 +1,7 @@
 import os
 
 from dogehouse import DogeClient
-from dogehouse.entities import (MessageEvent, ReadyEvent, RoomJoinEvent,
+from dogehouse.entities import (MessageEvent, ReadyEvent, RoomJoinEvent, RoomsFetchedEvent,
                                 UserJoinEvent, UserLeaveEvent)
 
 token = os.getenv("TOKEN", '')
@@ -13,7 +13,11 @@ doge = DogeClient(token, refresh_token)
 @doge.on_ready
 async def make_my_room(event: ReadyEvent) -> None:
     print(f"Successfully connected as @{event.user.username}!")
-    await doge.create_room("Hello World!")
+
+
+@doge.on_rooms_fetch
+async def join_any_room(event: RoomsFetchedEvent) -> None:
+    await doge.join_room(event.rooms[0])
 
 
 @doge.on_room_join

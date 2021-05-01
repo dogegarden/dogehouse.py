@@ -1,6 +1,7 @@
 import asyncio
 import functools
 import json
+import logging
 from logging import info
 from typing import Any, Callable, Dict, Optional
 from uuid import uuid4
@@ -11,18 +12,20 @@ from websockets.exceptions import WebSocketException
 
 from .entities import (
     ApiData, Callback, Event,
-    Room, User, Message,
-    MessageEvent, ReadyEvent, RoomJoinEvent,
+    Room, RoomPreview, User, Message,
+    MessageEvent, ReadyEvent,
+    RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
 )
 from .events import (
-    READY, MESSAGE,
-    CREATE_ROOM, ROOM_CREATED, USER_JOINED, USER_LEFT,
+    GET_TOP_ROOMS, JOIN_ROOM, READY, MESSAGE,
+    CREATE_ROOM, ROOMS_FETCHED, ROOM_CREATED, ROOM_JOINED, USER_JOINED, USER_LEFT,
     SEND_MESSAGE,
 )
 from .parsers import (
     parse_auth, parse_message_event,
-    parse_room_created, parse_user_joined, parse_user_left,
+    parse_room_joined, parse_rooms_fetched,
+    parse_user_joined, parse_user_left,
 )
 from .util import format_response, tokenize_message
 
@@ -65,6 +68,9 @@ class DogeClient:
             privacy="public" if public else "private",
         )
 
+    async def join_room(self, room: RoomPreview) -> None:
+        await self._send(JOIN_ROOM, roomId=room.id, creatorId=room.creator_id)
+
     async def send_message(self, message: str) -> None:
         if not self.room:
             raise RuntimeError("No room has been joined yet!")
@@ -78,7 +84,9 @@ class DogeClient:
     ############################## Events ##############################
 
     event_parsers: Dict[str, Callable[['DogeClient', ApiData], Event]] = {
-        ROOM_CREATED: parse_room_created,
+        ROOM_CREATED: parse_room_joined,
+        ROOM_JOINED: parse_room_joined,
+        ROOMS_FETCHED: parse_rooms_fetched,
         USER_JOINED: parse_user_joined,
         USER_LEFT: parse_user_left,
         MESSAGE: parse_message_event,
@@ -109,8 +117,13 @@ class DogeClient:
         self.event_hooks[READY] = callback
         return callback
 
+    def on_rooms_fetch(self, callback: Callback[RoomsFetchedEvent]) -> Callback[RoomsFetchedEvent]:
+        self.event_hooks[ROOMS_FETCHED] = callback
+        return callback
+
     def on_room_join(self, callback: Callback[RoomJoinEvent]) -> Callback[RoomJoinEvent]:
         self.event_hooks[ROOM_CREATED] = callback
+        self.event_hooks[ROOM_JOINED] = callback
         return callback
 
     def on_user_join(self, callback: Callback[UserJoinEvent]) -> Callback[UserJoinEvent]:
@@ -166,6 +179,9 @@ class DogeClient:
         finally:
             asyncio.ensure_future(self._disconnect())
 
+    def _debug_on(self) -> None:
+        logging.basicConfig(level=logging.DEBUG)
+
     async def _send(self, opcode: str, **data: Any) -> str:
         if self._socket is None:
             raise WebSocketException("Socket not initialized")
@@ -212,6 +228,7 @@ class DogeClient:
         callback = self.event_hooks.get(READY)
         if callback is not None:
             await callback(ReadyEvent(user=self.user))
+            await self._send(GET_TOP_ROOMS)
 
     async def _get_raw_events(self) -> None:
         while self._socket is not None:
