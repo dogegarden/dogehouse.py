@@ -11,7 +11,7 @@ from websockets.exceptions import WebSocketException
 
 from .entities import (
     ApiData, Callback, Event,
-    Room, User,
+    Room, User, Message,
     MessageEvent, ReadyEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
 )
@@ -31,9 +31,10 @@ api_version = "0.2.0"
 
 
 class DogeClient:
-    def __init__(self, token: str, refresh_token: str):
+    def __init__(self, token: str, refresh_token: str, prefix: str = '.') -> None:
         self.token = token
         self.refresh_token = refresh_token
+        self.prefix = prefix
 
         self._socket: Optional[WebSocketClientProtocol] = None
         self.loop = asyncio.get_event_loop()
@@ -42,6 +43,7 @@ class DogeClient:
         self.room: Optional[Room] = None
 
         self.event_hooks: Dict[str, Callback[Any]] = {}
+        self._commands: Dict[str, Callback[MessageEvent]] = {}
 
     ########################## Client Methods ##########################
 
@@ -90,16 +92,17 @@ class DogeClient:
 
         info(f'received event: {event_name}')
 
-        parser = self.event_parsers[event_name]
-        event = parser(self, data)
+        if event_name == MESSAGE:
+            msg_event = parse_message_event(self, data)
+            if msg_event.message.content.startswith(self.prefix):
+                await self._run_command(msg_event)
 
-        await self.run_callback(event_name, event)
-
-    async def run_callback(self, event_name: str, event: Event) -> None:
         callback = self.event_hooks.get(event_name)
         if callback is None:
             return
 
+        parser = self.event_parsers[event_name]
+        event = parser(self, data)
         await callback(event)
 
     def on_ready(self, callback: Callback[ReadyEvent]) -> Callback[ReadyEvent]:
@@ -131,6 +134,27 @@ class DogeClient:
 
         self.event_hooks[MESSAGE] = wrapped_callback
         return callback
+
+    def command(self, callback: Callback[MessageEvent]) -> Callback[MessageEvent]:
+        command_trigger = self.prefix + callback.__name__
+        self._commands[command_trigger] = callback
+        return callback
+
+    async def _run_command(self, event: MessageEvent) -> None:
+        text = event.message.content
+        command_trigger, content = text.split(' ', 1)
+        if command_trigger in self._commands:
+            callback = self._commands[command_trigger]
+
+            modified_event = MessageEvent(
+                message=Message(
+                    id=event.message.id,
+                    author=event.message.author,
+                    is_whisper=event.message.is_whisper,
+                    content=content,
+                )
+            )
+            await callback(modified_event)
 
     ######################### Internal methods #########################
 
@@ -185,7 +209,9 @@ class DogeClient:
         data = format_response(auth_response)
         self.user = parse_auth(data)
 
-        await self.run_callback(READY, ReadyEvent(self.user))
+        callback = self.event_hooks.get(READY)
+        if callback is not None:
+            await callback(ReadyEvent(user=self.user))
 
     async def _get_raw_events(self) -> None:
         while self._socket is not None:

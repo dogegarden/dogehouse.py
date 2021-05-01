@@ -32,6 +32,11 @@ async def user_left(event: UserLeaveEvent) -> None:
 
 
 @doge.on_message
+async def echo_message(event: MessageEvent) -> None:
+    await doge.send_message(f'@{event.message.author.username} said {event.message.content}')
+
+
+@doge.command
 async def echo(event: MessageEvent) -> None:
     await doge.send_message(f'@{event.message.author.username} said {event.message.content}')
 
