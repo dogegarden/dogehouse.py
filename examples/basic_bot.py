@@ -38,7 +38,8 @@ async def echo_message(event: MessageEvent) -> None:
 
 @doge.command
 async def echo(event: MessageEvent) -> None:
-    await doge.send_message(f'@{event.message.author.username} said {event.message.content}')
+    msg = event.message
+    await doge.send_message(f'@{msg.author.username} said {msg.content}')
 
 
 doge.run()

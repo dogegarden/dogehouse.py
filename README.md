@@ -16,7 +16,7 @@ You can find the documentation at [The DogeGarden Wiki](https://wiki.dogegarden.
 
 ```python
 from dogehouse import DogeClient
-from dogehouse.entities import ReadyEvent, RoomJoinEvent, UserJoinEvent
+from dogehouse.entities import ReadyEvent, UserJoinEvent, MessageEvent
 
 doge = DogeClient("token", "refresh_token")
 
@@ -30,6 +30,12 @@ async def make_my_room(event: ReadyEvent) -> None:
 @doge.on_user_join
 async def greet_user(event: UserJoinEvent) -> None:
     await doge.send_message(f"Hello @{event.user.username}")
+
+
+@doge.command
+async def echo(event: MessageEvent) -> None:
+    msg = event.message
+    await doge.send_message(f'@{msg.author.username} said {msg.content}')
 
 
 doge.run()
