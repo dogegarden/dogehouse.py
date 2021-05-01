@@ -1,14 +1,9 @@
-from typing import Any, Awaitable, Callable, Dict, List, NamedTuple, Optional, TypeVar, Union
+from typing import Any, Awaitable, Callable, Dict, NamedTuple, Optional, TypeVar
 
 ApiData = Dict[str, Any]
 
 T = TypeVar('T')
 Callback = Callable[[T], Awaitable[None]]
-
-
-class RawEvent(NamedTuple):
-    opcode: str
-    data: Dict[str, str]
 
 
 class UserPreview(NamedTuple):
@@ -46,39 +41,3 @@ class Message(NamedTuple):
     author: User
     content: str
     is_whisper: bool
-
-
-class ReadyEvent(NamedTuple):
-    user: User
-
-
-class RoomsFetchedEvent(NamedTuple):
-    rooms: List[RoomPreview]
-
-
-class RoomJoinEvent(NamedTuple):
-    room: Room
-    as_speaker: bool
-
-
-class UserJoinEvent(NamedTuple):
-    user: User
-
-
-class UserLeaveEvent(NamedTuple):
-    room_id: str
-    user: User
-
-
-class MessageEvent(NamedTuple):
-    message: Message
-
-
-Event = Union[
-    ReadyEvent,
-    RoomsFetchedEvent,
-    RoomJoinEvent,
-    UserJoinEvent,
-    UserLeaveEvent,
-    MessageEvent,
-]

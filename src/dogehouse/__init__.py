@@ -10,14 +10,13 @@ import websockets
 from websockets import WebSocketClientProtocol
 from websockets.exceptions import WebSocketException
 
-from .entities import (
-    ApiData, Callback, Event,
-    Room, RoomPreview, User, Message,
-    MessageEvent, ReadyEvent,
+from .entities import ApiData, Callback, Room, RoomPreview, User, Message
+from .events import (
+    Event, ReadyEvent, MessageEvent,
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
 )
-from .events import (
+from .constants import (
     GET_TOP_ROOMS, JOIN_ROOM, READY, MESSAGE,
     CREATE_ROOM, ROOMS_FETCHED, ROOM_CREATED, ROOM_JOINED, USER_JOINED, USER_LEFT,
     SEND_MESSAGE,
@@ -223,12 +222,14 @@ class DogeClient:
         assert self._socket is not None
         auth_response = await self._recv()
         data = format_response(auth_response)
-        self.user = parse_auth(data)
+        ready_event = parse_auth(data)
+        self.user = ready_event.user
 
         callback = self.event_hooks.get(READY)
         if callback is not None:
-            await callback(ReadyEvent(user=self.user))
-            await self._send(GET_TOP_ROOMS)
+            await callback(ready_event)
+
+        await self._send(GET_TOP_ROOMS)
 
     async def _get_raw_events(self) -> None:
         while self._socket is not None:

@@ -1,8 +1,11 @@
 import os
+import random
 
 from dogehouse import DogeClient
-from dogehouse.entities import (MessageEvent, ReadyEvent, RoomJoinEvent, RoomsFetchedEvent,
-                                UserJoinEvent, UserLeaveEvent)
+from dogehouse.events import (
+    ReadyEvent, RoomsFetchedEvent, RoomJoinEvent,
+    MessageEvent, UserJoinEvent, UserLeaveEvent,
+)
 
 token = os.getenv("TOKEN", '')
 refresh_token = os.getenv("REFRESH_TOKEN", '')
@@ -17,7 +20,11 @@ async def make_my_room(event: ReadyEvent) -> None:
 
 @doge.on_rooms_fetch
 async def join_any_room(event: RoomsFetchedEvent) -> None:
-    await doge.join_room(event.rooms[0])
+    if len(event.rooms) == 0:
+        await doge.create_room("Hello dogehouse.py")
+    else:
+        random_room = random.choice(event.rooms)
+        await doge.join_room(random_room)
 
 
 @doge.on_room_join

@@ -1,25 +1,17 @@
 from typing import TYPE_CHECKING
-
-from dogehouse.util import parse_tokens_to_message
-
-from .entities import (ApiData, Message, MessageEvent, Room, RoomJoinEvent, RoomPreview, RoomsFetchedEvent,
-                       User, UserJoinEvent, UserLeaveEvent, UserPreview)
-
 if TYPE_CHECKING:
-    from dogehouse import DogeClient
+    from . import DogeClient
+
+from .entities import ApiData, Message, Room, RoomPreview, User, UserPreview
+from .events import (
+    ReadyEvent, MessageEvent,
+    RoomsFetchedEvent, RoomJoinEvent,
+    UserJoinEvent, UserLeaveEvent,
+)
+from .util import parse_tokens_to_message
 
 
 ############################# Data Parsers #############################
-
-def parse_auth(data: ApiData) -> User:
-    user_dict = data.get('p')
-    if user_dict is None or not isinstance(user_dict, dict):
-        # TODO: improve error messages here, e.g. for empty/wrong tokens
-        raise TypeError(f"Bad response for user: {data}")
-
-    user = parse_user(user_dict)
-    return user
-
 
 def parse_user(user_dict: ApiData) -> User:
     user = User(
@@ -64,6 +56,16 @@ def parse_room_preview(room_dict: ApiData) -> RoomPreview:
     return room_preview
 
 ############################# Event Parsers ############################
+
+
+def parse_auth(data: ApiData) -> ReadyEvent:
+    user_dict = data.get('p')
+    if user_dict is None or not isinstance(user_dict, dict):
+        # TODO: improve error messages here, e.g. for empty/wrong tokens
+        raise TypeError(f"Bad response for user: {data}")
+
+    user = parse_user(user_dict)
+    return ReadyEvent(user=user)
 
 
 def parse_rooms_fetched(doge: 'DogeClient', data: ApiData) -> RoomsFetchedEvent:

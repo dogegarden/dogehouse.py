@@ -1,16 +1,44 @@
-READY = '_ready'
+from typing import Dict, List, NamedTuple, Union
 
-NEW_TOKENS = 'new-tokens'
+from .entities import Message, Room, RoomPreview, User
 
-CREATE_ROOM = 'room:create'
-ROOM_CREATED = 'room:create:reply'
-JOIN_ROOM = 'room:join'
-ROOM_JOINED = 'room:join:reply'
-GET_TOP_ROOMS = 'room:get_top'
-ROOMS_FETCHED = 'room:get_top:reply'
 
-USER_JOINED = 'new_user_join_room'
-USER_LEFT = 'user_left_room'
-MESSAGE = 'chat:send'
+class RawEvent(NamedTuple):
+    opcode: str
+    data: Dict[str, str]
 
-SEND_MESSAGE = 'send_room_chat_msg'
+
+class ReadyEvent(NamedTuple):
+    user: User
+
+
+class RoomsFetchedEvent(NamedTuple):
+    rooms: List[RoomPreview]
+
+
+class RoomJoinEvent(NamedTuple):
+    room: Room
+    as_speaker: bool
+
+
+class UserJoinEvent(NamedTuple):
+    user: User
+
+
+class UserLeaveEvent(NamedTuple):
+    room_id: str
+    user: User
+
+
+class MessageEvent(NamedTuple):
+    message: Message
+
+
+Event = Union[
+    ReadyEvent,
+    RoomsFetchedEvent,
+    RoomJoinEvent,
+    UserJoinEvent,
+    UserLeaveEvent,
+    MessageEvent,
+]
