@@ -1,4 +1,6 @@
-# Python wrapper for the dogehouse API
+# dogehouse.py
+
+Python wrapper for the dogehouse API.
 
 [![pypi](https://img.shields.io/badge/pypi-dogehouse-blue)](https://pypi.org/project/dogehouse)
 
