@@ -1,0 +1,13 @@
+✔ Basic messaging support @done(21-05-01 18:19)
+☐ Room actions
+☐ Voice Support
+
+☐ Housekeeping
+  ☐ Logic Separation
+    # This refers to the separation of opcodes, event hooks etc. into their own
+    # folders and classes for each feature, eg. messages, rooms, voice
+  ☐ Documentation on Read the docs
+
+☐ Testing
+  ☐ API testing with pytest
+  ☐ Doctests
