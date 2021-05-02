@@ -10,9 +10,9 @@ import websockets
 from websockets import WebSocketClientProtocol
 from websockets.exceptions import WebSocketException
 
-from .entities import ApiData, Callback, Room, RoomPreview, User, Message
+from .entities import ApiData, Room, RoomPreview, User, Message
 from .events import (
-    Event, ReadyEvent, MessageEvent,
+    Callback, Event, ReadyEvent, MessageEvent,
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
 )

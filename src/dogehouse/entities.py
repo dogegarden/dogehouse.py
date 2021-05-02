@@ -2,9 +2,6 @@ from typing import Any, Awaitable, Callable, Dict, NamedTuple, Optional, TypeVar
 
 ApiData = Dict[str, Any]
 
-T = TypeVar('T')
-Callback = Callable[[T], Awaitable[None]]
-
 
 class UserPreview(NamedTuple):
     id: str

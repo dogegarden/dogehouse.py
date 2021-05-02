@@ -1,4 +1,4 @@
-from typing import Dict, List, NamedTuple, Union
+from typing import Awaitable, Callable, Dict, List, NamedTuple, TypeVar, Union
 
 from .entities import Message, Room, RoomPreview, User
 
@@ -42,3 +42,13 @@ Event = Union[
     UserLeaveEvent,
     MessageEvent,
 ]
+EventType = TypeVar(
+    'EventType',
+    ReadyEvent,
+    RoomsFetchedEvent,
+    RoomJoinEvent,
+    UserJoinEvent,
+    UserLeaveEvent,
+    MessageEvent,
+)
+Callback = Callable[[EventType], Awaitable[None]]
