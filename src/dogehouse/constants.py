@@ -9,6 +9,7 @@ ROOM_JOINED = 'room:join:reply'
 GET_TOP_ROOMS = 'room:get_top'
 ROOMS_FETCHED = 'room:get_top:reply'
 
+USER_INFO = 'user:get_info'
 USER_JOINED = 'new_user_join_room'
 USER_LEFT = 'user_left_room'
 MESSAGE = 'chat:send'

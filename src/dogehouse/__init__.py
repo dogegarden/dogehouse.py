@@ -18,8 +18,8 @@ from .events import (
 )
 from .constants import (
     GET_TOP_ROOMS, JOIN_ROOM, READY, MESSAGE,
-    CREATE_ROOM, ROOMS_FETCHED, ROOM_CREATED, ROOM_JOINED, USER_JOINED, USER_LEFT,
-    SEND_MESSAGE,
+    CREATE_ROOM, ROOMS_FETCHED, ROOM_CREATED, ROOM_JOINED,
+    USER_INFO, USER_JOINED, USER_LEFT, SEND_MESSAGE,
 )
 from .parsers import (
     parse_auth, parse_message_event,
@@ -47,6 +47,7 @@ class DogeClient:
 
         self.event_hooks: Dict[str, Callback[Any]] = {}
         self._commands: Dict[str, Callback[MessageEvent]] = {}
+        self._fetches: Dict[str, Optional[ApiData]] = {}
 
     ########################## Client Methods ##########################
 
@@ -80,10 +81,22 @@ class DogeClient:
 
         await self._send(
             SEND_MESSAGE,
-            whisperedTo=([user.id for user in whisper_to]
-                         if whisper_to else None),
+            whisperedTo=(None if whisper_to is None
+                         else [user.id for user in whisper_to]),
             tokens=tokenize_message(message)
         )
+
+    async def fetch_user(
+            self,
+            *,
+            id: Optional[str] = None,
+            username: Optional[str] = None
+    ) -> User:
+        if not id and not username:
+            raise ValueError('Either user id or username must be provided')
+        data = await self._fetch(USER_INFO, userIdOrUsername=id or username)
+        print('got data:', data)
+        # TODO: return user
 
     ############################## Events ##############################
 
@@ -98,6 +111,10 @@ class DogeClient:
 
     async def new_event(self, data: ApiData) -> None:
         # TODO: error handling, data.get('e')
+        ref = data.get('ref')
+        if ref is not None and ref in self._fetches:
+            self._fetches[ref] = data
+
         event_name = data.get('op')
         if event_name not in self.event_parsers:
             return
@@ -197,6 +214,18 @@ class DogeClient:
         await self._socket.send(json.dumps(msg))
 
         return ref
+
+    async def _fetch(self, opcode: str, **data: Any) -> ApiData:
+        ref = await self._send(opcode, **data)
+
+        self._fetches[ref] = None
+        while True:
+            await asyncio.sleep(0.5)
+            fetched_data = self._fetches[ref]
+            print('Fetched:', fetched_data)
+            if fetched_data is not None:
+                del self._fetches[ref]
+                return fetched_data
 
     async def _recv(self) -> websockets.Data:
         if self._socket is None:
