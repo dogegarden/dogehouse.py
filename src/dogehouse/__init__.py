@@ -3,7 +3,7 @@ import functools
 import json
 import logging
 from logging import info
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 from uuid import uuid4
 
 import websockets
@@ -43,6 +43,7 @@ class DogeClient:
 
         self.user: Optional[User] = None
         self.room: Optional[Room] = None
+        self.top_rooms: List[RoomPreview] = []
 
         self.event_hooks: Dict[str, Callback[Any]] = {}
         self._commands: Dict[str, Callback[MessageEvent]] = {}
@@ -222,8 +223,7 @@ class DogeClient:
         assert self._socket is not None
         auth_response = await self._recv()
         data = format_response(auth_response)
-        ready_event = parse_auth(data)
-        self.user = ready_event.user
+        ready_event = parse_auth(self, data)
 
         callback = self.event_hooks.get(READY)
         if callback is not None:

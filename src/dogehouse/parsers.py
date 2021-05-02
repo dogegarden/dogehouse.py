@@ -58,13 +58,14 @@ def parse_room_preview(room_dict: ApiData) -> RoomPreview:
 ############################# Event Parsers ############################
 
 
-def parse_auth(data: ApiData) -> ReadyEvent:
+def parse_auth(doge: 'DogeClient', data: ApiData) -> ReadyEvent:
     user_dict = data.get('p')
     if user_dict is None or not isinstance(user_dict, dict):
         # TODO: improve error messages here, e.g. for empty/wrong tokens
         raise TypeError(f"Bad response for user: {data}")
 
     user = parse_user(user_dict)
+    doge.user = user
     return ReadyEvent(user=user)
 
 
@@ -75,6 +76,7 @@ def parse_rooms_fetched(doge: 'DogeClient', data: ApiData) -> RoomsFetchedEvent:
 
     rooms_data = data_dict['rooms']
     rooms = [parse_room_preview(room) for room in rooms_data]
+    doge.top_rooms = rooms
     return RoomsFetchedEvent(rooms=rooms)
 
 
