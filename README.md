@@ -41,6 +41,8 @@ async def echo(event: MessageEvent) -> None:
 doge.run()
 ```
 
+Check [examples](./examples/basic_bot.py) for more feature usage.
+
 ## Tokens
 
 - Go to [dogehouse.tv](https://dogehouse.tv)
