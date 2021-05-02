@@ -10,7 +10,7 @@ import websockets
 from websockets import WebSocketClientProtocol
 from websockets.exceptions import WebSocketException
 
-from .entities import ApiData, Room, RoomPreview, User, Message
+from .entities import ApiData, Room, RoomPreview, User, Message, UserPreview
 from .events import (
     Callback, Event, ReadyEvent, MessageEvent,
     RoomsFetchedEvent, RoomJoinEvent,
@@ -71,13 +71,13 @@ class DogeClient:
     async def join_room(self, room: RoomPreview) -> None:
         await self._send(JOIN_ROOM, roomId=room.id, creatorId=room.creator_id)
 
-    async def send_message(self, message: str) -> None:
+    async def send_message(self, message: str, *, whisper_to: List[UserPreview] = []) -> None:
         if not self.room:
             raise RuntimeError("No room has been joined yet!")
 
         await self._send(
             SEND_MESSAGE,
-            whisperedTo=[],
+            whisperedTo=[user.id for user in whisper_to],
             tokens=tokenize_message(message)
         )
 

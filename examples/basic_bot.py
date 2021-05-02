@@ -35,6 +35,7 @@ async def joined_room(event: RoomJoinEvent) -> None:
 @doge.on_user_join
 async def greet_user(event: UserJoinEvent) -> None:
     await doge.send_message(f"Hello @{event.user.username}")
+    await doge.send_message(f"Hi, I sent you a whisper!", whisper_to=[event.user])
 
 
 @doge.on_user_leave
