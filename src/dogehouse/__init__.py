@@ -145,7 +145,7 @@ class DogeClient:
             await callback(event)
 
         self.event_hooks[MESSAGE] = wrapped_callback
-        return callback
+        return wrapped_callback
 
     def command(self, callback: Callback[MessageEvent]) -> Callback[MessageEvent]:
         command_trigger = self.prefix + callback.__name__
