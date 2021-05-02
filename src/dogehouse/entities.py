@@ -1,39 +1,42 @@
-from typing import Any, Awaitable, Callable, Dict, NamedTuple, Optional, TypeVar
+from dataclasses import dataclass
+from typing import Any, Dict, Optional
 
 ApiData = Dict[str, Any]
 
 
-class UserPreview(NamedTuple):
+@dataclass(frozen=True)
+class UserPreview:
     id: str
     name: str
 
 
-class User(NamedTuple):
-    id: str
-    name: str
+@dataclass(frozen=True)
+class User(UserPreview):
     username: str
     bio: str
 
 
-class RoomPreview(NamedTuple):
-    id: str
-    creator_id: str
-    name: str
-    description: str
-    is_private: bool
-    users: Dict[str, UserPreview]
-
-
-class Room(NamedTuple):
+@dataclass(frozen=True)
+class _RoomBase:
     id: str
     creator_id: Optional[str]
     name: str
     description: str
     is_private: bool
+
+
+@dataclass(frozen=True)
+class RoomPreview(_RoomBase):
+    users: Dict[str, UserPreview]
+
+
+@dataclass(frozen=True)
+class Room(_RoomBase):
     users: Dict[str, User]
 
 
-class Message(NamedTuple):
+@dataclass(frozen=True)
+class Message:
     id: str
     author: User
     content: str
