@@ -106,7 +106,6 @@ class DogeClient:
         # TODO: error handling, data.get('e')
         event_name = data.get('op')
         if event_name not in self.event_parsers:
-            print(data)
             return
 
         info(f'received event: {event_name}')
