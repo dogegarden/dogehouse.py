@@ -54,7 +54,7 @@ class DogeClient:
             self,
             name: str,
             description: str = "",
-            public: bool = True
+            is_private: bool = True
     ) -> None:
         if not 2 <= len(name) <= 60:
             raise ValueError(
@@ -65,7 +65,7 @@ class DogeClient:
             CREATE_ROOM,
             name=name,
             description=description,
-            privacy="public" if public else "private",
+            isPrivate=is_private,
         )
 
     async def join_room(self, room: RoomPreview) -> None:
