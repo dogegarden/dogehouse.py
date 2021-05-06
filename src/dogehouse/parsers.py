@@ -7,6 +7,7 @@ from .events import (
     ReadyEvent, MessageEvent,
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
+    ChatUserBannedEvent, ChatUserUnbannedEvent,
 )
 from .util import parse_tokens_to_message
 
@@ -141,3 +142,27 @@ def parse_message_event(doge: 'DogeClient', data: ApiData) -> MessageEvent:
         is_whisper=msg_dict['isWhisper'],
     )
     return MessageEvent(msg)
+
+def parse_chat_user_banned(doge: 'DogeClient', data: ApiData) -> MessageEvent:
+    msg_dict = data.get('d')
+
+    if msg_dict is None or not isinstance(msg_dict, dict):
+        raise TypeError(f'Bad response for userid: {data}')
+
+    user_id = msg_dict['userId']
+
+    assert user_id is not None
+
+    return ChatUserBannedEvent(user_id)
+
+def parse_chat_user_unbanned(doge: 'DogeClient', data: ApiData) -> MessageEvent:
+    msg_dict = data.get('d')
+
+    if msg_dict is None or not isinstance(msg_dict, dict):
+        raise TypeError(f'Bad response for userid: {data}')
+
+    user_id = msg_dict['userId']
+
+    assert user_id is not None
+
+    return ChatUserUnbannedEvent(user_id)

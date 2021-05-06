@@ -5,6 +5,7 @@ from dogehouse import DogeClient
 from dogehouse.events import (
     ReadyEvent, RoomsFetchedEvent, RoomJoinEvent,
     MessageEvent, UserJoinEvent, UserLeaveEvent,
+    ChatUserBannedEvent,
 )
 
 token = os.getenv("TOKEN", '')
@@ -53,5 +54,13 @@ async def echo(event: MessageEvent) -> None:
     msg = event.message
     await doge.send_message(f'@{msg.author.username} said {msg.content}')
 
+@doge.command
+async def chatbanme(event: MessageEvent) -> None:
+    msg = event.message
+    await doge.chat_ban_user(msg.author.id)
+    
+@doge.on_chat_user_banned
+async def chat_user_banned(event: ChatUserBannedEvent):
+    print(f'Chat banned user: {event.user_id}')
 
 doge.run()

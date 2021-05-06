@@ -14,17 +14,18 @@ from .entities import ApiData, Room, RoomPreview, User, Message, UserPreview
 from .events import (
     Callback, Event, ReadyEvent, MessageEvent,
     RoomsFetchedEvent, RoomJoinEvent,
-    UserJoinEvent, UserLeaveEvent,
+    UserJoinEvent, UserLeaveEvent, ChatUserBannedEvent, ChatUserUnbannedEvent,
 )
 from .constants import (
     GET_TOP_ROOMS, JOIN_ROOM, READY, MESSAGE,
     CREATE_ROOM, ROOMS_FETCHED, ROOM_CREATED, ROOM_JOINED, USER_JOINED, USER_LEFT,
-    SEND_MESSAGE,
+    SEND_MESSAGE, CHAT_USER_BANNED, CHAT_USER_UNBANNED, BAN_CHAT_USER, UNBAN_CHAT_USER,
 )
 from .parsers import (
     parse_auth, parse_message_event,
     parse_room_joined, parse_rooms_fetched,
     parse_user_joined, parse_user_left,
+    parse_chat_user_banned, parse_chat_user_unbanned,
 )
 from .util import format_response, tokenize_message
 
@@ -85,6 +86,24 @@ class DogeClient:
             tokens=tokenize_message(message)
         )
 
+    async def chat_ban_user(
+            self,
+            user_id : int
+    ) -> None:
+        await self._send(
+            BAN_CHAT_USER,
+            userId=user_id
+        )
+
+    async def chat_unban_user(
+            self,
+            user_id : int
+    ) -> None:
+        await self._send(
+            UNBAN_CHAT_USER,
+            userId=user_id
+        )
+
     ############################## Events ##############################
 
     event_parsers: Dict[str, Callable[['DogeClient', ApiData], Event]] = {
@@ -94,6 +113,8 @@ class DogeClient:
         USER_JOINED: parse_user_joined,
         USER_LEFT: parse_user_left,
         MESSAGE: parse_message_event,
+        CHAT_USER_BANNED: parse_chat_user_banned,
+        CHAT_USER_UNBANNED: parse_chat_user_unbanned,
     }
 
     async def new_event(self, data: ApiData) -> None:
@@ -151,6 +172,14 @@ class DogeClient:
 
         self.event_hooks[MESSAGE] = wrapped_callback
         return wrapped_callback
+
+    def on_chat_user_banned(self, callback: Callback[ChatUserBannedEvent]) -> Callback[ChatUserBannedEvent]:
+        self.event_hooks[CHAT_USER_BANNED] = callback
+        return callback
+
+    def on_chat_user_unbanned(self, callback: Callback[ChatUserUnbannedEvent]) -> Callback[ChatUserUnbannedEvent]:
+        self.event_hooks[CHAT_USER_UNBANNED] = callback
+        return callback
 
     def command(self, callback: Callback[MessageEvent]) -> Callback[MessageEvent]:
         command_trigger = self.prefix + callback.__name__
