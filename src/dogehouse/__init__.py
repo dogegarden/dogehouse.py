@@ -14,7 +14,7 @@ from .entities import ApiData, Room, RoomPreview, User, Message, UserPreview
 from .events import (
     Callback, Event, ReadyEvent, MessageEvent,
     RoomsFetchedEvent, RoomJoinEvent,
-    UserJoinEvent, UserLeaveEvent, ChatUserBannedEvent, ChatUserUnbannedEvent,
+    UserJoinEvent, UserLeaveEvent, ChatMemberEvent
 )
 from .constants import (
     GET_TOP_ROOMS, JOIN_ROOM, READY, MESSAGE,
@@ -173,11 +173,11 @@ class DogeClient:
         self.event_hooks[MESSAGE] = wrapped_callback
         return wrapped_callback
 
-    def on_chat_user_banned(self, callback: Callback[ChatUserBannedEvent]) -> Callback[ChatUserBannedEvent]:
+    def on_chat_user_banned(self, callback: Callback[ChatMemberEvent]) -> Callback[ChatMemberEvent]:
         self.event_hooks[CHAT_USER_BANNED] = callback
         return callback
 
-    def on_chat_user_unbanned(self, callback: Callback[ChatUserUnbannedEvent]) -> Callback[ChatUserUnbannedEvent]:
+    def on_chat_user_unbanned(self, callback: Callback[ChatMemberEvent]) -> Callback[ChatMemberEvent]:
         self.event_hooks[CHAT_USER_UNBANNED] = callback
         return callback
 
