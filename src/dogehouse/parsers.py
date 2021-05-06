@@ -7,6 +7,7 @@ from .events import (
     ReadyEvent, MessageEvent,
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
+    MessageDeleteEvent,
 )
 from .util import parse_tokens_to_message
 
@@ -141,3 +142,14 @@ def parse_message_event(doge: 'DogeClient', data: ApiData) -> MessageEvent:
         is_whisper=msg_dict['isWhisper'],
     )
     return MessageEvent(msg)
+
+def parse_message_deleted_event(doge: 'DogeClient', data: ApiData) -> MessageDeleteEvent:
+    msg_dict = data.get('p')
+    if msg_dict is None or not isinstance(msg_dict, dict):
+        raise TypeError(f'Bad response for message: {data}')
+    
+    return MessageDeleteEvent(
+        message_id=msg_dict['messageId'],
+        author_id=msg_dict['userId'],
+        deleter_id=msg_dict['deleterId']
+    )

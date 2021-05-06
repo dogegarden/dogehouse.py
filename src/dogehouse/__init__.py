@@ -15,16 +15,18 @@ from .events import (
     Callback, Event, ReadyEvent, MessageEvent,
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
+    MessageDeleteEvent,
 )
 from .constants import (
     GET_TOP_ROOMS, JOIN_ROOM, READY, MESSAGE,
     CREATE_ROOM, ROOMS_FETCHED, ROOM_CREATED, ROOM_JOINED, USER_JOINED, USER_LEFT,
-    SEND_MESSAGE,
+    SEND_MESSAGE, CHAT_DELETE, CHAT_MESSAGE_DELETED
 )
 from .parsers import (
     parse_auth, parse_message_event,
     parse_room_joined, parse_rooms_fetched,
     parse_user_joined, parse_user_left,
+    parse_message_deleted_event,
 )
 from .util import format_response, tokenize_message
 
@@ -54,7 +56,7 @@ class DogeClient:
             self,
             name: str,
             description: str = "",
-            is_private: bool = True
+            is_private: bool = False
     ) -> None:
         if not 2 <= len(name) <= 60:
             raise ValueError(
@@ -85,6 +87,9 @@ class DogeClient:
             tokens=tokenize_message(message)
         )
 
+    async def delete_message(self, message: Message) -> None:
+        await self._send(CHAT_DELETE, messageId=message.id, userId=message.author.id, deleterId=self.user.id)
+
     ############################## Events ##############################
 
     event_parsers: Dict[str, Callable[['DogeClient', ApiData], Event]] = {
@@ -94,12 +99,14 @@ class DogeClient:
         USER_JOINED: parse_user_joined,
         USER_LEFT: parse_user_left,
         MESSAGE: parse_message_event,
+        CHAT_MESSAGE_DELETED: parse_message_deleted_event,
     }
 
     async def new_event(self, data: ApiData) -> None:
         # TODO: error handling, data.get('e')
         event_name = data.get('op')
         if event_name not in self.event_parsers:
+            print(data)
             return
 
         info(f'received event: {event_name}')
@@ -151,6 +158,10 @@ class DogeClient:
 
         self.event_hooks[MESSAGE] = wrapped_callback
         return wrapped_callback
+
+    def on_message_deleted(self, callback: Callback[MessageDeleteEvent]) -> Callback[MessageDeleteEvent]:
+        self.event_hooks[CHAT_MESSAGE_DELETED] = callback
+        return callback
 
     def command(self, callback: Callback[MessageEvent]) -> Callback[MessageEvent]:
         command_trigger = self.prefix + callback.__name__

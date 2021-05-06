@@ -33,6 +33,11 @@ class UserLeaveEvent(NamedTuple):
 class MessageEvent(NamedTuple):
     message: Message
 
+class MessageDeleteEvent(NamedTuple):
+    message_id: int
+    author_id: int
+    deleter_id: int
+
 
 Event = Union[
     ReadyEvent,
@@ -41,6 +46,7 @@ Event = Union[
     UserJoinEvent,
     UserLeaveEvent,
     MessageEvent,
+    MessageDeleteEvent,
 ]
 EventType = TypeVar(
     'EventType',
@@ -50,5 +56,6 @@ EventType = TypeVar(
     UserJoinEvent,
     UserLeaveEvent,
     MessageEvent,
+    MessageDeleteEvent,
 )
 Callback = Callable[[EventType], Awaitable[None]]
