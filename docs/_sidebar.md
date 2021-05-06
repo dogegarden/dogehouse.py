@@ -1,8 +1,0 @@
-- [Introduction](intro)
-- [Getting started](quickstart)
-- [API Reference](api)
-- **Links**
-- [![Github](assets/img/github.png)Github](https://github.com/Arthurdw/dogehouse.py)
-- [![PyPi](assets/img/pypi.png)PyPi](https://pypi.org/project/dogehouse/)
-- [![Dogegarden discord](assets/img/discord.png)Dogegarden discord](https://discord.gg/S5yJECfc8d)
-- [![Xiler Discord](assets/img/discord.png)Xiler Discord](https://dc.xiler.net)

@@ -1,1 +1,0 @@
-npx docsify serve docs

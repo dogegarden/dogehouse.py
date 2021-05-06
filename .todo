@@ -1,0 +1,14 @@
+✔ Basic messaging support @done(21-05-01 18:19)
+☐ Room actions
+☐ Voice Support
+
+☐ Housekeeping
+  ✘ Logic Separation @cancelled(21-05-02 17:07)
+    # Turns out there's no sane way in Python to split classes.
+    # Just making as many delegating functions as possible is the best I can do.
+  ☐ Documentation on Read the docs
+
+☐ Testing
+  ☐ API testing with pytest
+  ☐ Doctests
+  ☐ Tox

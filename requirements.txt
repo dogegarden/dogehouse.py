@@ -1,4 +1,1 @@
-websockets
-python-dateutil
-python-socketio[asyncio_client]
-represents
+.

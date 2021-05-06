@@ -1,10 +1,6 @@
-dist/
-.vscode/
-.idea/
-*/**/__pycache__/*
-venv/
-*.egg-info/
+__pycache__
+*.egg-info
+build
+dist
 
-# Testing scripts
-sample.py
-test.py
+venv
