@@ -3,11 +3,12 @@
 ☐ Voice Support
 
 ☐ Housekeeping
-  ☐ Logic Separation
-    # This refers to the separation of opcodes, event hooks etc. into their own
-    # folders and classes for each feature, eg. messages, rooms, voice
+  ✘ Logic Separation @cancelled(21-05-02 17:07)
+    # Turns out there's no sane way in Python to split classes.
+    # Just making as many delegating functions as possible is the best I can do.
   ☐ Documentation on Read the docs
 
 ☐ Testing
   ☐ API testing with pytest
   ☐ Doctests
+  ☐ Tox
