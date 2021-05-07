@@ -35,9 +35,9 @@ class MessageEvent(NamedTuple):
 
 
 class MessageDeleteEvent(NamedTuple):
-    message_id: int
-    author_id: int
-    deleter_id: int
+    message_id: str
+    author_id: str
+    deleter_id: str
 
 
 class ChatMemberEvent(NamedTuple):
@@ -57,7 +57,7 @@ class StateEvent(NamedTuple):
 
 
 class HandRaisedEvent(NamedTuple):
-    user_id: int
+    user_id: str
 
 
 Event = Union[
