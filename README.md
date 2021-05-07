@@ -24,7 +24,7 @@ doge = DogeClient("token", "refresh_token")
 @doge.on_ready
 async def make_my_room(event: ReadyEvent) -> None:
     print(f"Successfully connected as @{event.user.username}!")
-    await doge.create_room("Hello World!")
+    await doge.create_room("Hello dogehouse.py!")
 
 
 @doge.on_user_join
