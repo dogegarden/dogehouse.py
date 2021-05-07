@@ -15,16 +15,23 @@ from .events import (
     Callback, Event, ReadyEvent, MessageEvent,
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
+    MessageDeleteEvent, ChatMemberEvent,
+    FetchRoomBannedUsersEvent
 )
 from .constants import (
     GET_TOP_ROOMS, JOIN_ROOM, READY, MESSAGE,
     CREATE_ROOM, ROOMS_FETCHED, ROOM_CREATED, ROOM_JOINED, USER_JOINED, USER_LEFT,
-    SEND_MESSAGE,
+    SEND_MESSAGE, DELETE_CHAT_MESSAGE, CHAT_MESSAGE_DELETED,
+    BAN_CHAT_MEMBER, UNBAN_CHAT_MEMBER, CHAT_MEMBER_BANNED, CHAT_MEMBER_UNBANNED,
+    BAN_ROOM_MEMBER, UNBAN_ROOM_MEMBER, FETCH_ROOM_BANNED_USERS, FETCHED_ROOM_BANNED_USERS,
 )
 from .parsers import (
     parse_auth, parse_message_event,
     parse_room_joined, parse_rooms_fetched,
     parse_user_joined, parse_user_left,
+    parse_message_deleted_event,
+    parse_chat_member, parse_room_member,
+    parse_banned_room_users_fetched,
 )
 from .util import format_response, tokenize_message
 
@@ -54,7 +61,7 @@ class DogeClient:
             self,
             name: str,
             description: str = "",
-            public: bool = True
+            is_private: bool = False
     ) -> None:
         if not 2 <= len(name) <= 60:
             raise ValueError(
@@ -65,7 +72,7 @@ class DogeClient:
             CREATE_ROOM,
             name=name,
             description=description,
-            privacy="public" if public else "private",
+            isPrivate=is_private,
         )
 
     async def join_room(self, room: RoomPreview) -> None:
@@ -85,6 +92,31 @@ class DogeClient:
             tokens=tokenize_message(message)
         )
 
+    async def delete_message(self, message: Message) -> None:
+        assert self.user is not None
+        await self._send(
+            DELETE_CHAT_MESSAGE,
+            messageId=message.id,
+            userId=message.author.id,
+            deleterId=self.user.id
+        )
+
+    async def ban_chat_user(self, user_id: str) -> None:
+        await self._send(BAN_CHAT_MEMBER, userId=user_id)
+
+    async def unban_chat_user(self, user_id: str) -> None:
+        await self._send(UNBAN_CHAT_MEMBER, userId=user_id)
+
+    async def ban_room_user(self, user_id: str, ip_ban: bool = False) -> None:
+        await self._send(BAN_ROOM_MEMBER, userId=user_id, shouldBanIP=ip_ban)
+
+    async def unban_room_user(self, user_id: str) -> None:
+        await self._send(UNBAN_ROOM_MEMBER, userId=user_id)
+
+    async def get_banned_room_users(self, max_users: int = 100) -> None:
+        # TODO: Add cursor argument, not sure if it's useful.
+        await self._send(FETCH_ROOM_BANNED_USERS, cursor=0, limit=max_users)
+
     ############################## Events ##############################
 
     event_parsers: Dict[str, Callable[['DogeClient', ApiData], Event]] = {
@@ -94,6 +126,12 @@ class DogeClient:
         USER_JOINED: parse_user_joined,
         USER_LEFT: parse_user_left,
         MESSAGE: parse_message_event,
+        CHAT_MESSAGE_DELETED: parse_message_deleted_event,
+        CHAT_MEMBER_BANNED: parse_chat_member,
+        CHAT_MEMBER_UNBANNED: parse_chat_member,
+        # ROOM_MEMBER_BANNED: parse_room_member,
+        # ROOM_MEMBER_UNBANNED: parse_room_member,
+        FETCHED_ROOM_BANNED_USERS: parse_banned_room_users_fetched,
     }
 
     async def new_event(self, data: ApiData) -> None:
@@ -151,6 +189,33 @@ class DogeClient:
 
         self.event_hooks[MESSAGE] = wrapped_callback
         return wrapped_callback
+
+    def on_message_deleted(self, callback: Callback[MessageDeleteEvent]) -> Callback[MessageDeleteEvent]:
+        self.event_hooks[CHAT_MESSAGE_DELETED] = callback
+        return callback
+
+    def on_chat_member_banned(self, callback: Callback[ChatMemberEvent]) -> Callback[ChatMemberEvent]:
+        self.event_hooks[CHAT_MEMBER_BANNED] = callback
+        return callback
+
+    def on_chat_member_unbanned(self, callback: Callback[ChatMemberEvent]) -> Callback[ChatMemberEvent]:
+        self.event_hooks[CHAT_MEMBER_UNBANNED] = callback
+        return callback
+
+    # def on_room_member_banned(self, callback: Callback[RoomMemberEvent]) -> Callback[RoomMemberEvent]:
+    #     self.event_hooks[ROOM_MEMBER_BANNED] = callback
+    #     return callback
+
+    # def on_room_member_unbanned(self, callback: Callback[RoomMemberEvent]) -> Callback[RoomMemberEvent]:
+    #     self.event_hooks[ROOM_MEMBER_UNBANNED] = callback
+    #     return callback
+
+    def on_fetch_room_banned_users(
+            self,
+            callback: Callback[FetchRoomBannedUsersEvent]
+    ) -> Callback[FetchRoomBannedUsersEvent]:
+        self.event_hooks[FETCHED_ROOM_BANNED_USERS] = callback
+        return callback
 
     def command(self, callback: Callback[MessageEvent]) -> Callback[MessageEvent]:
         command_trigger = self.prefix + callback.__name__

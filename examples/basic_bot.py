@@ -1,5 +1,4 @@
 import os
-import random
 
 from dogehouse import DogeClient
 from dogehouse.events import (
@@ -16,15 +15,7 @@ doge = DogeClient(token, refresh_token)
 @doge.on_ready
 async def make_my_room(event: ReadyEvent) -> None:
     print(f"Successfully connected as @{event.user.username}!")
-
-
-@doge.on_rooms_fetch
-async def join_any_room(event: RoomsFetchedEvent) -> None:
-    if len(event.rooms) == 0:
-        await doge.create_room("Hello dogehouse.py")
-    else:
-        random_room = random.choice(event.rooms)
-        await doge.join_room(random_room)
+    await doge.create_room('Hello dogehouse.py!')
 
 
 @doge.on_room_join
@@ -45,13 +36,13 @@ async def user_left(event: UserLeaveEvent) -> None:
 
 @doge.on_message
 async def echo_message(event: MessageEvent) -> None:
-    await doge.send_message(f'@{event.message.author.username} said {event.message.content}')
+    msg = event.message
+    print(f'@{msg.author.username} sent {msg.content}')
 
 
 @doge.command
 async def echo(event: MessageEvent) -> None:
     msg = event.message
     await doge.send_message(f'@{msg.author.username} said {msg.content}')
-
 
 doge.run()
