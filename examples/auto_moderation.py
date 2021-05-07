@@ -11,18 +11,22 @@ banned_words = ['bad']
 severe_words = ['racist']
 user_infractions = {}
 
+
 @doge.on_ready
 async def ready(event: ReadyEvent) -> None:
     print('Bot is up!')
     await doge.create_room('Auto-moderation')
 
+
 @doge.on_room_join
 async def room_join(event: RoomJoinEvent) -> None:
     pass
 
+
 @doge.on_user_join
 async def user_join(event: UserJoinEvent) -> None:
     user_infractions[event.user.id] = dict(infractions=0)
+
 
 @doge.on_message
 async def message(event: MessageEvent) -> None:
@@ -40,9 +44,11 @@ async def message(event: MessageEvent) -> None:
         if word in msg.content:
             await doge.ban_room_user(msg.author.id)
 
+
 @doge.on_message_deleted
 async def message_deleted(event: MessageDeleteEvent) -> None:
     await doge.send_message(f'Deleted message: {event.message_id} from {event.author_id}')
+
 
 @doge.on_chat_member_banned
 async def chat_member_banned(event: ChatMemberEvent) -> None:

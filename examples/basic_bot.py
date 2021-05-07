@@ -33,16 +33,18 @@ async def greet_user(event: UserJoinEvent) -> None:
 async def user_left(event: UserLeaveEvent) -> None:
     await doge.send_message(f"Bye @{event.user.username}")
 
-
+    
 @doge.on_message
 async def echo_message(event: MessageEvent) -> None:
     msg = event.message
     print(f'@{msg.author.username} sent {msg.content}')
 
+
 @doge.on_hand_raise
 async def accept_speaker_request(event: HandRaisedEvent) -> None:
     await doge.add_speaker(event.user_id)
     await doge.send_message(f'Gave speaker permissions to: {event.user_id}')
+
 
 @doge.command
 async def echo(event: MessageEvent) -> None:

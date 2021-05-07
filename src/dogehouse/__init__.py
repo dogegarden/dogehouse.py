@@ -16,7 +16,7 @@ from .events import (
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
     MessageDeleteEvent, ChatMemberEvent,
-    FetchRoomBannedUsersEvent, StateEvent, 
+    FetchRoomBannedUsersEvent, StateEvent,
 )
 from .constants import (
     GET_TOP_ROOMS, JOIN_ROOM, READY, MESSAGE,
@@ -24,7 +24,7 @@ from .constants import (
     SEND_MESSAGE, DELETE_CHAT_MESSAGE, CHAT_MESSAGE_DELETED,
     BAN_CHAT_MEMBER, UNBAN_CHAT_MEMBER, CHAT_MEMBER_BANNED, CHAT_MEMBER_UNBANNED,
     BAN_ROOM_MEMBER, UNBAN_ROOM_MEMBER, FETCH_ROOM_BANNED_USERS, FETCHED_ROOM_BANNED_USERS,
-    MUTE_ROOM, DEAFEN_ROOM, ROOM_MUTED, ROOM_DEAFENED, HAND_RAISED, ADD_SPEAKER, 
+    MUTE_ROOM, DEAFEN_ROOM, ROOM_MUTED, ROOM_DEAFENED, HAND_RAISED, ADD_SPEAKER,
 )
 from .parsers import (
     parse_auth, parse_message_event,
@@ -34,7 +34,7 @@ from .parsers import (
     parse_chat_member, parse_room_member,
     parse_banned_room_users_fetched,
     parse_muted_event, parse_deafened_event,
-    parse_hand_raised_event, 
+    parse_hand_raised_event,
 )
 from .util import format_response, tokenize_message
 
@@ -158,7 +158,6 @@ class DogeClient:
         # TODO: error handling, data.get('e')
         event_name = data.get('op')
         if event_name not in self.event_parsers:
-            print(data)
             info(f"event '{event_name}' ignored")
             return
 
