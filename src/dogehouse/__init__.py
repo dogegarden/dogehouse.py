@@ -53,8 +53,8 @@ class DogeClient:
         self.user: Optional[User] = None
         self.room: Optional[Room] = None
         self.top_rooms: List[RoomPreview] = []
-        self.muted = False
-        self.deafened = False
+        self.is_muted = False
+        self.is_deafened = False
 
         self.event_hooks: Dict[str, Callback[Any]] = {}
         self._commands: Dict[str, Callback[MessageEvent]] = {}
@@ -124,13 +124,11 @@ class DogeClient:
         # TODO: Add cursor argument, not sure if it's useful.
         await self._send(FETCH_ROOM_BANNED_USERS, cursor=0, limit=max_users)
 
-    async def toggle_mute(self) -> None:
-        self.muted = not self.muted
-        await self._send(MUTE_ROOM, muted=self.muted)
+    async def set_mute(self, state: bool) -> None:
+        await self._send(MUTE_ROOM, muted=state)
 
-    async def toggle_deafen(self) -> None:
-        self.deafened = not self.deafened
-        await self._send(DEAFEN_ROOM, deafened=self.deafened)
+    async def set_deafen(self, state: bool) -> None:
+        await self._send(DEAFEN_ROOM, deafened=state)
 
     ############################## Events ##############################
 

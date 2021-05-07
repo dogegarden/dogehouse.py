@@ -201,7 +201,9 @@ def parse_banned_room_users_fetched(doge: 'DogeClient', data: ApiData) -> FetchR
     return FetchRoomBannedUsersEvent(banned_users)
 
 def parse_muted_event(doge: 'DogeClient', data: ApiData) -> StateEvent:
-    return StateEvent(doge.muted)
+    doge.is_muted = not doge.is_muted
+    return StateEvent(doge.is_muted)
 
 def parse_deafened_event(doge: 'DogeClient', data: ApiData) -> StateEvent:
-    return StateEvent(doge.deafened)
+    doge.is_deafened = not doge.is_deafened
+    return StateEvent(doge.is_deafened)

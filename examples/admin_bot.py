@@ -20,18 +20,18 @@ async def mute(event: MessageEvent) -> None:
     if event.message.author.id == owner_id:
         await doge.toggle_mute()
     """
-    await doge.toggle_mute()
+    await doge.set_mute(not doge.is_muted)
 
 @doge.command
 async def deafen(event: MessageEvent) -> None:
-    await doge.toggle_deafen()
+    await doge.set_deafen(not doge.is_deafened)
 
 @doge.on_mute_change
-async def mute_change(event: StateEvent) -> None:
+async def toggle_mute(event: StateEvent) -> None:
     await doge.send_message(f'I\'ve changed my mute state to: {event.state}')
 
 @doge.on_deafen_change
-async def deafen_change(event: StateEvent) -> None:
+async def toggle_deafen(event: StateEvent) -> None:
     await doge.send_message(f'I\'ve changed my deafen state to: {event.state}')
 
 doge.run()
