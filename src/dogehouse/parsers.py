@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from . import DogeClient
 
@@ -9,6 +10,7 @@ from .events import (
     UserJoinEvent, UserLeaveEvent,
     MessageDeleteEvent, ChatMemberEvent,
     RoomMemberEvent, FetchRoomBannedUsersEvent,
+    StateEvent, 
 )
 from .util import parse_tokens_to_message
 
@@ -197,3 +199,11 @@ def parse_banned_room_users_fetched(doge: 'DogeClient', data: ApiData) -> FetchR
     banned_users_data = data_dict['users']
     banned_users = [parse_banned_user(user) for user in banned_users_data]
     return FetchRoomBannedUsersEvent(banned_users)
+
+def parse_muted_event(doge: 'DogeClient', data: ApiData) -> StateEvent:
+    doge.is_muted = not doge.is_muted
+    return StateEvent(doge.is_muted)
+
+def parse_deafened_event(doge: 'DogeClient', data: ApiData) -> StateEvent:
+    doge.is_deafened = not doge.is_deafened
+    return StateEvent(doge.is_deafened)
