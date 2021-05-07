@@ -1,11 +1,10 @@
 import os
-import random
 
 from dogehouse import DogeClient
 from dogehouse.events import (
     ReadyEvent, RoomsFetchedEvent, RoomJoinEvent,
     MessageEvent, UserJoinEvent, UserLeaveEvent,
-    MessageDeleteEvent,
+    MessageDeleteEvent, ChatMemberEvent,
 )
 
 token = os.getenv("TOKEN", '')
@@ -14,6 +13,7 @@ refresh_token = os.getenv("REFRESH_TOKEN", '')
 doge = DogeClient(token, refresh_token)
 
 banned_words = ['hack', 'spoof']
+severe_words = ['racist']
 
 @doge.on_ready
 async def make_my_room(event: ReadyEvent) -> None:
@@ -22,11 +22,7 @@ async def make_my_room(event: ReadyEvent) -> None:
 
 @doge.on_rooms_fetch
 async def join_any_room(event: RoomsFetchedEvent) -> None:
-    if len(event.rooms) == 0:
-        await doge.create_room("Hello dogehouse.py")
-    else:
-        random_room = random.choice(event.rooms)
-        await doge.join_room(random_room)
+    await doge.create_room('Hello dogehouse.py!')
 
 
 @doge.on_room_join
@@ -48,12 +44,19 @@ async def user_left(event: UserLeaveEvent) -> None:
 @doge.on_message
 async def echo_message(event: MessageEvent) -> None:
     msg = event.message
-    await doge.send_message(f'@{event.message.author.username} said {msg.content}')
 
     # Simple automod
     for word in banned_words:
         if msg.content.count(word):
             await doge.delete_message(msg)
+
+    for word in severe_words:
+        if msg.content.count(word):
+            await doge.chat_ban_user(msg.author.id) # same for chat_unban_user
+
+@doge.on_chat_member_banned
+async def chat_member_banned(event: ChatMemberEvent):
+    await doge.send_message(f'Chat-Banned user: {event.chat_member.id}')
 
 @doge.on_message_deleted
 async def message_deleted(event: MessageDeleteEvent) -> None:

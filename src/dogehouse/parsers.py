@@ -2,12 +2,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from . import DogeClient
 
-from .entities import ApiData, Message, Room, RoomPreview, User, UserPreview
+from .entities import ApiData, Message, Room, RoomPreview, User, UserPreview, ChatMember
 from .events import (
     ReadyEvent, MessageEvent,
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
-    MessageDeleteEvent,
+    MessageDeleteEvent, ChatMemberEvent
 )
 from .util import parse_tokens_to_message
 
@@ -153,3 +153,13 @@ def parse_message_deleted_event(doge: 'DogeClient', data: ApiData) -> MessageDel
         author_id=msg_dict['userId'],
         deleter_id=msg_dict['deleterId']
     )
+
+def parse_chat_member(doge: 'DogeClient', data: ApiData) -> ChatMemberEvent:
+    msg_dict = data.get('d')
+    if msg_dict is None or not isinstance(msg_dict, dict):
+        raise TypeError(f'Bad response for chat member: {data}')
+
+    chat_member = ChatMember(msg_dict['userId'])
+
+    return ChatMemberEvent(chat_member=chat_member)
+    

@@ -41,3 +41,8 @@ class Message:
     author: User
     content: str
     is_whisper: bool
+
+@dataclass(frozen=True)
+class ChatMember:
+    id: int
+    
