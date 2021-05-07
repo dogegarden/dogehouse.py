@@ -2,12 +2,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from . import DogeClient
 
-from .entities import ApiData, Message, Room, RoomPreview, User, UserPreview, ChatMember
+from .entities import ApiData, Message, Room, RoomPreview, User, UserPreview, ChatMember, RoomMember, BannedUser
 from .events import (
     ReadyEvent, MessageEvent,
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
-    MessageDeleteEvent, ChatMemberEvent
+    MessageDeleteEvent, ChatMemberEvent,
+    RoomMemberEvent, BannedRoomUsersGotEvent,
 )
 from .util import parse_tokens_to_message
 
@@ -55,6 +56,17 @@ def parse_room_preview(room_dict: ApiData) -> RoomPreview:
         users={user['id']: parse_user_preview(user) for user in user_previews}
     )
     return room_preview
+
+def parse_banned_user(banned_users_dict: ApiData) -> BannedUser:
+    banned_user = BannedUser(
+        banned_user=User(
+            id=banned_users_dict['id'],
+            name=banned_users_dict['displayName'],
+            username=banned_users_dict['username'],
+            bio=banned_users_dict['bio']
+        )
+    )
+    return banned_user
 
 ############################# Event Parsers ############################
 
@@ -162,4 +174,21 @@ def parse_chat_member(doge: 'DogeClient', data: ApiData) -> ChatMemberEvent:
     chat_member = ChatMember(msg_dict['userId'])
 
     return ChatMemberEvent(chat_member=chat_member)
-    
+
+def parse_room_member(doge: 'DogeClient', data: ApiData) -> RoomMemberEvent:
+    msg_dict = data.get('d')
+    if msg_dict is None or not isinstance(msg_dict, dict):
+        raise ValueError(f'Bad response for room member: {data}')
+
+    room_member = RoomMember(msg_dict['userId'])
+
+    return RoomMemberEvent(room_member=room_member)
+
+def parse_banned_room_users_fetched(doge: 'DogeClient', data: ApiData) -> BannedRoomUsersGotEvent:
+    data_dict = data.get('p')
+    if data_dict is None or not isinstance(data_dict, dict):
+        raise ValueError(f'Bad response for banned room users: {data}')
+
+    banned_users_data = data_dict['users']
+    banned_users = [parse_banned_user(user) for user in banned_users_data]
+    return BannedRoomUsersGotEvent(banned_users)

@@ -1,6 +1,6 @@
 from typing import Awaitable, Callable, Dict, List, NamedTuple, TypeVar, Union
 
-from .entities import Message, Room, RoomPreview, User, ChatMember
+from .entities import Message, Room, RoomPreview, User, ChatMember, RoomMember, BannedUser
 
 
 class RawEvent(NamedTuple):
@@ -41,6 +41,12 @@ class MessageDeleteEvent(NamedTuple):
 class ChatMemberEvent(NamedTuple):
     chat_member: ChatMember
 
+class RoomMemberEvent(NamedTuple):
+    room_member: RoomMember
+
+class BannedRoomUsersGotEvent(NamedTuple):
+    banned_users: List[BannedUser]
+
 Event = Union[
     ReadyEvent,
     RoomsFetchedEvent,
@@ -50,6 +56,8 @@ Event = Union[
     MessageEvent,
     MessageDeleteEvent,
     ChatMemberEvent,
+    RoomMemberEvent,
+    BannedRoomUsersGotEvent,
 ]
 EventType = TypeVar(
     'EventType',
@@ -61,5 +69,7 @@ EventType = TypeVar(
     MessageEvent,
     MessageDeleteEvent,
     ChatMemberEvent,
+    RoomMemberEvent,
+    BannedRoomUsersGotEvent,
 )
 Callback = Callable[[EventType], Awaitable[None]]

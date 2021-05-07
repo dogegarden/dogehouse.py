@@ -45,4 +45,11 @@ class Message:
 @dataclass(frozen=True)
 class ChatMember:
     id: int
-    
+
+@dataclass(frozen=True)
+class RoomMember: #TODO: Use it when fetching is implemented in on_room_user_banned
+    id: int
+
+@dataclass(frozen=True)
+class BannedUser: #TODO: Customize more otherwise use a User class
+    banned_user: User
