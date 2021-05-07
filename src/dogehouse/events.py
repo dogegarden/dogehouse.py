@@ -51,8 +51,10 @@ class RoomMemberEvent(NamedTuple):
 class FetchRoomBannedUsersEvent(NamedTuple):
     banned_users: List[BannedUser]
 
+
 class StateEvent(NamedTuple):
     state: bool
+
 
 Event = Union[
     ReadyEvent,
