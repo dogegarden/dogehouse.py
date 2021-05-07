@@ -1,5 +1,6 @@
 ✔ Basic messaging support @done(21-05-01 18:19)
-☐ Room actions
+✔ Room actions @done(21-05-07 23:50)
+☐ In-place fetch queries
 ☐ Voice Support
 
 ☐ Housekeeping
@@ -7,6 +8,11 @@
     # Turns out there's no sane way in Python to split classes.
     # Just making as many delegating functions as possible is the best I can do.
   ☐ Documentation on Read the docs
+
+☐ Linting
+  ☐ Use Black instead of autopep8
+  ☐ Setup pre commit hooks for it
+  ☐ Add a mypy.ini and add that to pre commit as well
 
 ☐ Testing
   ☐ API testing with pytest
