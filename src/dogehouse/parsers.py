@@ -3,7 +3,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from . import DogeClient
 
-from .entities import ApiData, Message, Room, RoomPreview, User, UserPreview, ChatMember, RoomMember, BannedUser
+from .entities import (
+    ApiData, Message, Room, RoomPreview,
+    User, UserPreview, ChatMember, RoomMember
+)
 from .events import (
     ReadyEvent, MessageEvent,
     RoomsFetchedEvent, RoomJoinEvent,
@@ -58,18 +61,6 @@ def parse_room_preview(room_dict: ApiData) -> RoomPreview:
         users={user['id']: parse_user_preview(user) for user in user_previews}
     )
     return room_preview
-
-
-def parse_banned_user(banned_users_dict: ApiData) -> BannedUser:
-    banned_user = BannedUser(
-        banned_user=User(
-            id=banned_users_dict['id'],
-            name=banned_users_dict['displayName'],
-            username=banned_users_dict['username'],
-            bio=banned_users_dict['bio']
-        )
-    )
-    return banned_user
 
 ############################# Event Parsers ############################
 
@@ -191,13 +182,13 @@ def parse_room_member(doge: 'DogeClient', data: ApiData) -> RoomMemberEvent:
     return RoomMemberEvent(room_member=room_member)
 
 
-def parse_banned_room_users_fetched(doge: 'DogeClient', data: ApiData) -> FetchRoomBannedUsersEvent:
+def parse_room_banned_users_fetched(doge: 'DogeClient', data: ApiData) -> FetchRoomBannedUsersEvent:
     data_dict = data.get('p')
     if data_dict is None or not isinstance(data_dict, dict):
         raise ValueError(f'Bad response for banned room users: {data}')
 
     banned_users_data = data_dict['users']
-    banned_users = [parse_banned_user(user) for user in banned_users_data]
+    banned_users = [parse_user(user_dict) for user_dict in banned_users_data]
     return FetchRoomBannedUsersEvent(banned_users)
 
 

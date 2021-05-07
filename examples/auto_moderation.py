@@ -45,12 +45,12 @@ async def message(event: MessageEvent) -> None:
             await doge.ban_room_user(msg.author.id)
 
 
-@doge.on_message_deleted
+@doge.on_message_delete
 async def message_deleted(event: MessageDeleteEvent) -> None:
     await doge.send_message(f'Deleted message: {event.message_id} from {event.author_id}')
 
 
-@doge.on_chat_member_banned
+@doge.on_chat_member_ban
 async def chat_member_banned(event: ChatMemberEvent) -> None:
     await doge.send_message(f'Chat-Banned {event.chat_member.id}')
 
