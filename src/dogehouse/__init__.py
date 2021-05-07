@@ -77,6 +77,9 @@ class DogeClient:
 
     async def join_room(self, room: RoomPreview) -> None:
         await self._send(JOIN_ROOM, roomId=room.id, creatorId=room.creator_id)
+        
+    async def join_room_id(self, room_id: str) -> None:
+        await self._send(JOIN_ROOM, roomId=room_id)
 
     async def send_message(
             self, message: str, *,
