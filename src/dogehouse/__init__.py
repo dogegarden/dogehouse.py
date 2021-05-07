@@ -77,7 +77,7 @@ class DogeClient:
 
     async def join_room(self, room: RoomPreview) -> None:
         await self._send(JOIN_ROOM, roomId=room.id, creatorId=room.creator_id)
-        
+
     async def join_room_id(self, room_id: str) -> None:
         await self._send(JOIN_ROOM, roomId=room_id)
 
@@ -141,21 +141,25 @@ class DogeClient:
         # TODO: error handling, data.get('e')
         event_name = data.get('op')
         if event_name not in self.event_parsers:
+            info(f"event '{event_name}' ignored")
             return
 
-        info(f'received event: {event_name}')
+        info(f"processing event '{event_name}'")
 
         if event_name == MESSAGE:
             msg_event = parse_message_event(self, data)
             if msg_event.message.content.startswith(self.prefix):
                 await self._run_command(msg_event)
 
+        parser = self.event_parsers[event_name]
+        event = parser(self, data)
+        await self.run_callback(event_name, event)
+
+    async def run_callback(self, event_name: str, event: Any) -> None:
         callback = self.event_hooks.get(event_name)
         if callback is None:
             return
 
-        parser = self.event_parsers[event_name]
-        event = parser(self, data)
         await callback(event)
 
     def on_ready(self, callback: Callback[ReadyEvent]) -> Callback[ReadyEvent]:
@@ -296,11 +300,9 @@ class DogeClient:
         auth_response = await self._recv()
         data = format_response(auth_response)
         ready_event = parse_auth(self, data)
+        await self.run_callback(READY, ready_event)
 
-        callback = self.event_hooks.get(READY)
-        if callback is not None:
-            await callback(ready_event)
-
+        # TODO: remove, use manual fetching instead
         await self._send(GET_TOP_ROOMS)
 
     async def _get_raw_events(self) -> None:
