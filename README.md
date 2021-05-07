@@ -16,7 +16,7 @@ You can find the documentation at [The DogeGarden Wiki](https://wiki.dogegarden.
 
 ```python
 from dogehouse import DogeClient
-from dogehouse.entities import ReadyEvent, UserJoinEvent, MessageEvent
+from dogehouse.events import ReadyEvent, UserJoinEvent, MessageEvent
 
 doge = DogeClient("token", "refresh_token")
 
