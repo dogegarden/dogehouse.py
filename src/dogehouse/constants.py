@@ -16,9 +16,11 @@ UNBAN_ROOM_MEMBER = 'room:unban'
 FETCH_ROOM_BANNED_USERS = 'room:get_banned_users'
 MUTE_ROOM = 'room:mute'
 DEAFEN_ROOM = 'room:deafen'
+ADD_SPEAKER = 'add_speaker'
 
 USER_JOINED = 'new_user_join_room'
 USER_LEFT = 'user_left_room'
+HAND_RAISED = 'hand_raised'
 MESSAGE = 'chat:send'
 CHAT_MESSAGE_DELETED = 'chat:delete'  # why is this the same as above???
 CHAT_MEMBER_BANNED = 'chat_user_banned'

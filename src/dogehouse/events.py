@@ -35,9 +35,9 @@ class MessageEvent(NamedTuple):
 
 
 class MessageDeleteEvent(NamedTuple):
-    message_id: int
-    author_id: int
-    deleter_id: int
+    message_id: str
+    author_id: str
+    deleter_id: str
 
 
 class ChatMemberEvent(NamedTuple):
@@ -56,6 +56,10 @@ class StateEvent(NamedTuple):
     state: bool
 
 
+class HandRaisedEvent(NamedTuple):
+    user_id: str
+
+
 Event = Union[
     ReadyEvent,
     RoomsFetchedEvent,
@@ -68,6 +72,7 @@ Event = Union[
     RoomMemberEvent,
     FetchRoomBannedUsersEvent,
     StateEvent,
+    HandRaisedEvent,
 ]
 EventType = TypeVar(
     'EventType',
@@ -82,5 +87,6 @@ EventType = TypeVar(
     RoomMemberEvent,
     FetchRoomBannedUsersEvent,
     StateEvent,
+    HandRaisedEvent,
 )
 Callback = Callable[[EventType], Awaitable[None]]

@@ -12,7 +12,7 @@ from websockets.exceptions import WebSocketException
 
 from .entities import ApiData, Room, RoomPreview, User, Message, UserPreview
 from .events import (
-    Callback, Event, ReadyEvent, MessageEvent,
+    Callback, Event, HandRaisedEvent, ReadyEvent, MessageEvent,
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
     MessageDeleteEvent, ChatMemberEvent,
@@ -24,7 +24,7 @@ from .constants import (
     SEND_MESSAGE, DELETE_CHAT_MESSAGE, CHAT_MESSAGE_DELETED,
     BAN_CHAT_MEMBER, UNBAN_CHAT_MEMBER, CHAT_MEMBER_BANNED, CHAT_MEMBER_UNBANNED,
     BAN_ROOM_MEMBER, UNBAN_ROOM_MEMBER, FETCH_ROOM_BANNED_USERS, FETCHED_ROOM_BANNED_USERS,
-    MUTE_ROOM, DEAFEN_ROOM, ROOM_MUTED, ROOM_DEAFENED,
+    MUTE_ROOM, DEAFEN_ROOM, ROOM_MUTED, ROOM_DEAFENED, HAND_RAISED, ADD_SPEAKER,
 )
 from .parsers import (
     parse_auth, parse_message_event,
@@ -34,6 +34,7 @@ from .parsers import (
     parse_chat_member, parse_room_member,
     parse_banned_room_users_fetched,
     parse_muted_event, parse_deafened_event,
+    parse_hand_raised_event,
 )
 from .util import format_response, tokenize_message
 
@@ -130,6 +131,9 @@ class DogeClient:
     async def set_deafen(self, state: bool) -> None:
         await self._send(DEAFEN_ROOM, deafened=state)
 
+    async def add_speaker(self, user_id: str) -> None:
+        await self._send(ADD_SPEAKER, userId=user_id)
+
     ############################## Events ##############################
 
     event_parsers: Dict[str, Callable[['DogeClient', ApiData], Event]] = {
@@ -147,6 +151,7 @@ class DogeClient:
         FETCHED_ROOM_BANNED_USERS: parse_banned_room_users_fetched,
         ROOM_MUTED: parse_muted_event,
         ROOM_DEAFENED: parse_deafened_event,
+        HAND_RAISED: parse_hand_raised_event,
     }
 
     async def new_event(self, data: ApiData) -> None:
@@ -193,6 +198,10 @@ class DogeClient:
 
     def on_user_leave(self, callback: Callback[UserLeaveEvent]) -> Callback[UserLeaveEvent]:
         self.event_hooks[USER_LEFT] = callback
+        return callback
+
+    def on_hand_raise(self, callback: Callback[HandRaisedEvent]) -> Callback[HandRaisedEvent]:
+        self.event_hooks[HAND_RAISED] = callback
         return callback
 
     def on_message(self, callback: Callback[MessageEvent]) -> Callback[MessageEvent]:
