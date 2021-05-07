@@ -10,7 +10,7 @@ from .events import (
     UserJoinEvent, UserLeaveEvent,
     MessageDeleteEvent, ChatMemberEvent,
     RoomMemberEvent, FetchRoomBannedUsersEvent,
-    StateEvent, 
+    StateEvent, HandRaisedEvent
 )
 from .util import parse_tokens_to_message
 
@@ -207,3 +207,10 @@ def parse_muted_event(doge: 'DogeClient', data: ApiData) -> StateEvent:
 def parse_deafened_event(doge: 'DogeClient', data: ApiData) -> StateEvent:
     doge.is_deafened = not doge.is_deafened
     return StateEvent(doge.is_deafened)
+
+def parse_hand_raised_event(doge: 'DogeClient', data: ApiData) -> HandRaisedEvent:
+    msg_dict = data.get('d')
+    if msg_dict is None or not isinstance(msg_dict, dict):
+        raise ValueError(f'Bad response for hand raised: {data}')
+
+    return HandRaisedEvent(msg_dict['userId'])
