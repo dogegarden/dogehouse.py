@@ -16,14 +16,14 @@ from .events import (
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
     MessageDeleteEvent, ChatMemberEvent,
-    RoomMemberEvent, BannedRoomUsersGotEvent
+    FetchRoomBannedUsersEvent
 )
 from .constants import (
     GET_TOP_ROOMS, JOIN_ROOM, READY, MESSAGE,
     CREATE_ROOM, ROOMS_FETCHED, ROOM_CREATED, ROOM_JOINED, USER_JOINED, USER_LEFT,
-    SEND_MESSAGE, DELETE_CHAT_MESSAGE, CHAT_MESSAGE_DELETED, BAN_CHAT_MEMBER, UNBAN_CHAT_MEMBER,
-    CHAT_MEMBER_BANNED, CHAT_MEMBER_UNBANNED, BAN_ROOM_MEMBER, UNBAN_ROOM_MEMBER,
-    ROOM_GET_BANNED_USERS, ROOM_GOT_BANNED_USERS,
+    SEND_MESSAGE, DELETE_CHAT_MESSAGE, CHAT_MESSAGE_DELETED,
+    BAN_CHAT_MEMBER, UNBAN_CHAT_MEMBER, CHAT_MEMBER_BANNED, CHAT_MEMBER_UNBANNED,
+    BAN_ROOM_MEMBER, UNBAN_ROOM_MEMBER, FETCH_ROOM_BANNED_USERS, FETCHED_ROOM_BANNED_USERS,
 )
 from .parsers import (
     parse_auth, parse_message_event,
@@ -94,7 +94,12 @@ class DogeClient:
 
     async def delete_message(self, message: Message) -> None:
         assert self.user is not None
-        await self._send(DELETE_CHAT_MESSAGE, messageId=message.id, userId=message.author.id, deleterId=self.user.id)
+        await self._send(
+            DELETE_CHAT_MESSAGE,
+            messageId=message.id,
+            userId=message.author.id,
+            deleterId=self.user.id
+        )
 
     async def ban_chat_user(self, user_id: str) -> None:
         await self._send(BAN_CHAT_MEMBER, userId=user_id)
@@ -109,7 +114,8 @@ class DogeClient:
         await self._send(UNBAN_ROOM_MEMBER, userId=user_id)
 
     async def get_banned_room_users(self, max_users: int = 100) -> None:
-        await self._send(ROOM_GET_BANNED_USERS, cursor=0, limit=max_users) #TODO: Add cursor argument, not sure if it's useful.
+        # TODO: Add cursor argument, not sure if it's useful.
+        await self._send(FETCH_ROOM_BANNED_USERS, cursor=0, limit=max_users)
 
     ############################## Events ##############################
 
@@ -123,9 +129,9 @@ class DogeClient:
         CHAT_MESSAGE_DELETED: parse_message_deleted_event,
         CHAT_MEMBER_BANNED: parse_chat_member,
         CHAT_MEMBER_UNBANNED: parse_chat_member,
-        #ROOM_MEMBER_BANNED: parse_room_member,
-        #ROOM_MEMBER_UNBANNED: parse_room_member,
-        ROOM_GOT_BANNED_USERS: parse_banned_room_users_fetched,
+        # ROOM_MEMBER_BANNED: parse_room_member,
+        # ROOM_MEMBER_UNBANNED: parse_room_member,
+        FETCHED_ROOM_BANNED_USERS: parse_banned_room_users_fetched,
     }
 
     async def new_event(self, data: ApiData) -> None:
@@ -196,16 +202,19 @@ class DogeClient:
         self.event_hooks[CHAT_MEMBER_UNBANNED] = callback
         return callback
 
-    """def on_room_member_banned(self, callback: Callback[RoomMemberEvent]) -> Callback[RoomMemberEvent]:
-        self.event_hooks[ROOM_MEMBER_BANNED] = callback
-        return callback
-    
-    def on_room_member_unbanned(self, callback: Callback[RoomMemberEvent]) -> Callback[RoomMemberEvent]:
-        self.event_hooks[ROOM_MEMBER_UNBANNED] = callback
-        return callback"""
+    # def on_room_member_banned(self, callback: Callback[RoomMemberEvent]) -> Callback[RoomMemberEvent]:
+    #     self.event_hooks[ROOM_MEMBER_BANNED] = callback
+    #     return callback
 
-    def on_banned_room_users_got(self, callback: Callback[BannedRoomUsersGotEvent]) -> Callback[BannedRoomUsersGotEvent]:
-        self.event_hooks[ROOM_GOT_BANNED_USERS] = callback
+    # def on_room_member_unbanned(self, callback: Callback[RoomMemberEvent]) -> Callback[RoomMemberEvent]:
+    #     self.event_hooks[ROOM_MEMBER_UNBANNED] = callback
+    #     return callback
+
+    def on_fetch_room_banned_users(
+            self,
+            callback: Callback[FetchRoomBannedUsersEvent]
+    ) -> Callback[FetchRoomBannedUsersEvent]:
+        self.event_hooks[FETCHED_ROOM_BANNED_USERS] = callback
         return callback
 
     def command(self, callback: Callback[MessageEvent]) -> Callback[MessageEvent]:

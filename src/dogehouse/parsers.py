@@ -8,7 +8,7 @@ from .events import (
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
     MessageDeleteEvent, ChatMemberEvent,
-    RoomMemberEvent, BannedRoomUsersGotEvent,
+    RoomMemberEvent, FetchRoomBannedUsersEvent,
 )
 from .util import parse_tokens_to_message
 
@@ -56,6 +56,7 @@ def parse_room_preview(room_dict: ApiData) -> RoomPreview:
         users={user['id']: parse_user_preview(user) for user in user_previews}
     )
     return room_preview
+
 
 def parse_banned_user(banned_users_dict: ApiData) -> BannedUser:
     banned_user = BannedUser(
@@ -155,16 +156,18 @@ def parse_message_event(doge: 'DogeClient', data: ApiData) -> MessageEvent:
     )
     return MessageEvent(msg)
 
+
 def parse_message_deleted_event(doge: 'DogeClient', data: ApiData) -> MessageDeleteEvent:
     msg_dict = data.get('p')
     if msg_dict is None or not isinstance(msg_dict, dict):
         raise TypeError(f'Bad response for message: {data}')
-    
+
     return MessageDeleteEvent(
         message_id=msg_dict['messageId'],
         author_id=msg_dict['userId'],
         deleter_id=msg_dict['deleterId']
     )
+
 
 def parse_chat_member(doge: 'DogeClient', data: ApiData) -> ChatMemberEvent:
     msg_dict = data.get('d')
@@ -175,6 +178,7 @@ def parse_chat_member(doge: 'DogeClient', data: ApiData) -> ChatMemberEvent:
 
     return ChatMemberEvent(chat_member=chat_member)
 
+
 def parse_room_member(doge: 'DogeClient', data: ApiData) -> RoomMemberEvent:
     msg_dict = data.get('d')
     if msg_dict is None or not isinstance(msg_dict, dict):
@@ -184,11 +188,12 @@ def parse_room_member(doge: 'DogeClient', data: ApiData) -> RoomMemberEvent:
 
     return RoomMemberEvent(room_member=room_member)
 
-def parse_banned_room_users_fetched(doge: 'DogeClient', data: ApiData) -> BannedRoomUsersGotEvent:
+
+def parse_banned_room_users_fetched(doge: 'DogeClient', data: ApiData) -> FetchRoomBannedUsersEvent:
     data_dict = data.get('p')
     if data_dict is None or not isinstance(data_dict, dict):
         raise ValueError(f'Bad response for banned room users: {data}')
 
     banned_users_data = data_dict['users']
     banned_users = [parse_banned_user(user) for user in banned_users_data]
-    return BannedRoomUsersGotEvent(banned_users)
+    return FetchRoomBannedUsersEvent(banned_users)
