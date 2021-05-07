@@ -33,7 +33,7 @@ async def greet_user(event: UserJoinEvent) -> None:
 async def user_left(event: UserLeaveEvent) -> None:
     await doge.send_message(f"Bye @{event.user.username}")
 
-    
+
 @doge.on_message
 async def echo_message(event: MessageEvent) -> None:
     msg = event.message
