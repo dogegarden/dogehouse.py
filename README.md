@@ -16,7 +16,10 @@ You can find the documentation at [The DogeGarden Wiki](https://wiki.dogegarden.
 
 ```python
 from dogehouse import DogeClient
-from dogehouse.events import ReadyEvent, UserJoinEvent, MessageEvent
+from dogehouse.events import (
+    ReadyEvent,RoomJoinEvent,
+    MessageEvent, UserJoinEvent
+)
 
 doge = DogeClient("token", "refresh_token")
 
@@ -26,6 +29,9 @@ async def make_my_room(event: ReadyEvent) -> None:
     print(f"Successfully connected as @{event.user.username}!")
     await doge.create_room("Hello World!")
 
+@doge.on_room_join
+async def joined_room(event: RoomJoinEvent) -> None:
+    print("Joined room", event.room.name)
 
 @doge.on_user_join
 async def greet_user(event: UserJoinEvent) -> None:
