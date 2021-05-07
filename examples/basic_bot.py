@@ -2,7 +2,7 @@ import os
 
 from dogehouse import DogeClient
 from dogehouse.events import (
-    HandRaisedEvent, ReadyEvent, RoomsFetchedEvent, RoomJoinEvent,
+    HandRaisedEvent, ReadyEvent, RoomJoinEvent,
     MessageEvent, UserJoinEvent, UserLeaveEvent,
 )
 
