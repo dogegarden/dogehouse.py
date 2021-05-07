@@ -16,7 +16,7 @@ from .events import (
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
     MessageDeleteEvent, ChatMemberEvent,
-    FetchRoomBannedUsersEvent
+    FetchRoomBannedUsersEvent, StateEvent, 
 )
 from .constants import (
     GET_TOP_ROOMS, JOIN_ROOM, READY, MESSAGE,
@@ -24,6 +24,7 @@ from .constants import (
     SEND_MESSAGE, DELETE_CHAT_MESSAGE, CHAT_MESSAGE_DELETED,
     BAN_CHAT_MEMBER, UNBAN_CHAT_MEMBER, CHAT_MEMBER_BANNED, CHAT_MEMBER_UNBANNED,
     BAN_ROOM_MEMBER, UNBAN_ROOM_MEMBER, FETCH_ROOM_BANNED_USERS, FETCHED_ROOM_BANNED_USERS,
+    MUTE_ROOM, DEAFEN_ROOM, ROOM_MUTED, ROOM_DEAFENED, 
 )
 from .parsers import (
     parse_auth, parse_message_event,
@@ -32,6 +33,7 @@ from .parsers import (
     parse_message_deleted_event,
     parse_chat_member, parse_room_member,
     parse_banned_room_users_fetched,
+    parse_muted_event, parse_deafened_event, 
 )
 from .util import format_response, tokenize_message
 
@@ -51,6 +53,8 @@ class DogeClient:
         self.user: Optional[User] = None
         self.room: Optional[Room] = None
         self.top_rooms: List[RoomPreview] = []
+        self.muted = False
+        self.deafened = False
 
         self.event_hooks: Dict[str, Callback[Any]] = {}
         self._commands: Dict[str, Callback[MessageEvent]] = {}
@@ -120,6 +124,14 @@ class DogeClient:
         # TODO: Add cursor argument, not sure if it's useful.
         await self._send(FETCH_ROOM_BANNED_USERS, cursor=0, limit=max_users)
 
+    async def toggle_mute(self) -> None:
+        self.muted = not self.muted
+        await self._send(MUTE_ROOM, muted=self.muted)
+
+    async def toggle_deafen(self) -> None:
+        self.deafened = not self.deafened
+        await self._send(DEAFEN_ROOM, deafened=self.deafened)
+
     ############################## Events ##############################
 
     event_parsers: Dict[str, Callable[['DogeClient', ApiData], Event]] = {
@@ -135,6 +147,8 @@ class DogeClient:
         # ROOM_MEMBER_BANNED: parse_room_member,
         # ROOM_MEMBER_UNBANNED: parse_room_member,
         FETCHED_ROOM_BANNED_USERS: parse_banned_room_users_fetched,
+        ROOM_MUTED: parse_muted_event,
+        ROOM_DEAFENED: parse_deafened_event,
     }
 
     async def new_event(self, data: ApiData) -> None:
@@ -222,6 +236,14 @@ class DogeClient:
             callback: Callback[FetchRoomBannedUsersEvent]
     ) -> Callback[FetchRoomBannedUsersEvent]:
         self.event_hooks[FETCHED_ROOM_BANNED_USERS] = callback
+        return callback
+
+    def on_mute_change(self, callback: Callback[StateEvent]) -> Callback[StateEvent]:
+        self.event_hooks[ROOM_MUTED] = callback
+        return callback
+
+    def on_deafen_change(self, callback: Callback[StateEvent]) -> Callback[StateEvent]:
+        self.event_hooks[ROOM_DEAFENED] = callback
         return callback
 
     def command(self, callback: Callback[MessageEvent]) -> Callback[MessageEvent]:

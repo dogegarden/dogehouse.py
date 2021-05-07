@@ -51,6 +51,8 @@ class RoomMemberEvent(NamedTuple):
 class FetchRoomBannedUsersEvent(NamedTuple):
     banned_users: List[BannedUser]
 
+class StateEvent(NamedTuple):
+    state: bool
 
 Event = Union[
     ReadyEvent,
@@ -63,6 +65,7 @@ Event = Union[
     ChatMemberEvent,
     RoomMemberEvent,
     FetchRoomBannedUsersEvent,
+    StateEvent,
 ]
 EventType = TypeVar(
     'EventType',
@@ -76,5 +79,6 @@ EventType = TypeVar(
     ChatMemberEvent,
     RoomMemberEvent,
     FetchRoomBannedUsersEvent,
+    StateEvent,
 )
 Callback = Callable[[EventType], Awaitable[None]]
