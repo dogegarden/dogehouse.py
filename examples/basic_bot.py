@@ -4,6 +4,7 @@ from dogehouse import DogeClient
 from dogehouse.events import (
     HandRaisedEvent, ReadyEvent, RoomJoinEvent,
     MessageEvent, UserJoinEvent, UserLeaveEvent,
+    CommandEvent,
 )
 
 token = os.getenv("TOKEN", '')
@@ -47,7 +48,7 @@ async def accept_speaker_request(event: HandRaisedEvent) -> None:
 
 
 @doge.command
-async def echo(event: MessageEvent) -> None:
+async def echo(event: CommandEvent) -> None:
     msg = event.message
     await doge.send_message(f'@{msg.author.username} said {msg.content}')
 

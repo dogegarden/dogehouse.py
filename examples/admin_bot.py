@@ -17,7 +17,7 @@ async def ready(event: ReadyEvent) -> None:
 
 
 @doge.command
-async def mute(event: MessageEvent) -> None:
+async def mute(event: CommandEvent) -> None:
     """You can add an owner check here if you want:
     if event.message.author.id == owner_id:
         await doge.toggle_mute()
@@ -26,7 +26,7 @@ async def mute(event: MessageEvent) -> None:
 
 
 @doge.command
-async def deafen(event: MessageEvent) -> None:
+async def deafen(event: CommandEvent) -> None:
     await doge.set_deafen(not doge.is_deafened)
 
 

@@ -34,6 +34,12 @@ class MessageEvent(NamedTuple):
     message: Message
 
 
+class CommandEvent(NamedTuple):
+    message: Message
+    command_name: str
+    arguments: List[str]
+
+
 class MessageDeleteEvent(NamedTuple):
     message_id: str
     author_id: str
@@ -73,6 +79,7 @@ Event = Union[
     FetchRoomBannedUsersEvent,
     StateEvent,
     HandRaisedEvent,
+    CommandEvent,
 ]
 EventType = TypeVar(
     'EventType',
@@ -88,5 +95,6 @@ EventType = TypeVar(
     FetchRoomBannedUsersEvent,
     StateEvent,
     HandRaisedEvent,
+    CommandEvent,
 )
 Callback = Callable[[EventType], Awaitable[None]]

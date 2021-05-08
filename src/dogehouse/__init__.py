@@ -16,7 +16,7 @@ from .events import (
     RoomsFetchedEvent, RoomJoinEvent,
     UserJoinEvent, UserLeaveEvent,
     MessageDeleteEvent, ChatMemberEvent,
-    FetchRoomBannedUsersEvent, StateEvent,
+    FetchRoomBannedUsersEvent, StateEvent, CommandEvent,
 )
 from .constants import (
     GET_TOP_ROOMS, JOIN_ROOM, READY, MESSAGE,
@@ -58,7 +58,7 @@ class DogeClient:
         self.is_deafened = False
 
         self.event_hooks: Dict[str, Callback[Any]] = {}
-        self._commands: Dict[str, Callback[MessageEvent]] = {}
+        self._commands: Dict[str, Callback[CommandEvent]] = {}
 
     ########################## Client Methods ##########################
 
@@ -253,32 +253,37 @@ class DogeClient:
         self.event_hooks[ROOM_DEAFENED] = callback
         return callback
 
-    def command(self, callback: Callback[MessageEvent]) -> Callback[MessageEvent]:
+    def command(self, callback: Callback[CommandEvent]) -> Callback[CommandEvent]:
         command_trigger = self.prefix + callback.__name__
         self._commands[command_trigger] = callback
         return callback
 
     async def _run_command(self, event: MessageEvent) -> None:
         text = event.message.content
-
         try:
             command_trigger, content = text.split(' ', 1)
             if len(content.strip()) == 0:
                 raise ValueError
         except ValueError:
-            command_trigger, content = text.strip(), None
+            command_trigger, content = text.strip(), ''
 
         if command_trigger in self._commands:
             callback = self._commands[command_trigger]
 
-            modified_event = MessageEvent(
-                message=Message(
-                    id=event.message.id,
-                    author=event.message.author,
-                    is_whisper=event.message.is_whisper,
-                    content=content,
-                )
+            arguments = []
+            if content:
+                for arg in content.split(' ', 99):  # max_split + 1 max args
+                    if len(arg.strip()) > 0:
+                        arguments.append(arg.strip())
+            else:
+                arguments = []
+
+            modified_event = CommandEvent(
+                message=event.message,
+                command_name=command_trigger,
+                arguments=arguments
             )
+
             await callback(modified_event)
 
     ######################### Internal methods #########################

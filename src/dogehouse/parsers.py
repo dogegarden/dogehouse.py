@@ -13,7 +13,7 @@ from .events import (
     UserJoinEvent, UserLeaveEvent,
     MessageDeleteEvent, ChatMemberEvent,
     RoomMemberEvent, FetchRoomBannedUsersEvent,
-    StateEvent, HandRaisedEvent
+    StateEvent, HandRaisedEvent,
 )
 from .util import parse_tokens_to_message
 
