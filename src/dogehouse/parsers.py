@@ -210,7 +210,7 @@ def parse_hand_raised_event(doge: 'DogeClient', data: ApiData) -> HandRaisedEven
     return HandRaisedEvent(msg_dict['userId'])
 
 
-def parse_command_execute_event(doge: 'DogeClient', event: MessageEvent) -> CommandEvent: # Todo make a parse_comamnd_event parser to use in init _run_command and here
+def parse_command_execute_event(doge: 'DogeClient', event: MessageEvent) -> CommandEvent: # Todo make a parse_command_event parser to use in init _run_command and here
     msg = event.message
 
     try:
