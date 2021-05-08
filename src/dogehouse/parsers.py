@@ -13,7 +13,7 @@ from .events import (
     UserJoinEvent, UserLeaveEvent,
     MessageDeleteEvent, ChatMemberEvent,
     RoomMemberEvent, FetchRoomBannedUsersEvent,
-    StateEvent, HandRaisedEvent,
+    StateEvent, HandRaisedEvent, CommandEvent,
 )
 from .util import parse_tokens_to_message
 
@@ -208,3 +208,28 @@ def parse_hand_raised_event(doge: 'DogeClient', data: ApiData) -> HandRaisedEven
         raise ValueError(f'Bad response for hand raised: {data}')
 
     return HandRaisedEvent(msg_dict['userId'])
+
+
+def parse_command_execute_event(doge: 'DogeClient', event: MessageEvent) -> CommandEvent: # Todo make a parse_comamnd_event parser to use in init _run_command and here
+    msg = event.message
+
+    try:
+        command_name, content = msg.content.split(' ', 1)
+        if len(content.strip()) == 0:
+            raise ValueError
+    except ValueError:
+        command_name, content = msg.content.strip(), ''
+
+    arguments = []
+    if content:
+        for arg in content.split(' ', 99):  # max_split + 1 max args
+            if len(arg.strip()) > 0:
+                arguments.append(arg.strip())
+        else:
+            arguments = []
+
+    return CommandEvent(
+        message=msg,
+        command_name=command_name,
+        arguments=arguments
+    )

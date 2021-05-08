@@ -32,3 +32,7 @@ ROOM_MUTED = 'room:mute:reply'
 ROOM_DEAFENED = 'room:deafen:reply'
 
 SEND_MESSAGE = 'send_room_chat_msg'
+
+# Custom events, not from dogehouse api, self sent
+COMMAND_EXECUTE = 'command_execute'
+NON_COMMAND_EXECUTE = 'non_command_execute'

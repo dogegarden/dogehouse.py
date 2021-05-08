@@ -25,6 +25,7 @@ from .constants import (
     BAN_CHAT_MEMBER, UNBAN_CHAT_MEMBER, CHAT_MEMBER_BANNED, CHAT_MEMBER_UNBANNED,
     BAN_ROOM_MEMBER, UNBAN_ROOM_MEMBER, FETCH_ROOM_BANNED_USERS, FETCHED_ROOM_BANNED_USERS,
     MUTE_ROOM, DEAFEN_ROOM, ROOM_MUTED, ROOM_DEAFENED, HAND_RAISED, ADD_SPEAKER,
+    COMMAND_EXECUTE, NON_COMMAND_EXECUTE,
 )
 from .parsers import (
     parse_auth, parse_message_event,
@@ -35,6 +36,7 @@ from .parsers import (
     parse_room_banned_users_fetched,
     parse_muted_event, parse_deafened_event,
     parse_hand_raised_event,
+    parse_command_execute_event,
 )
 from .util import format_response, tokenize_message
 
@@ -154,6 +156,11 @@ class DogeClient:
         HAND_RAISED: parse_hand_raised_event,
     }
 
+    custom_event_parsers = { # TODO: Find out which args they take like the above format
+        COMMAND_EXECUTE: parse_command_execute_event,
+        NON_COMMAND_EXECUTE: parse_command_execute_event,
+    }
+
     async def new_event(self, data: ApiData) -> None:
         # TODO: error handling, data.get('e')
         event_name = data.get('op')
@@ -166,6 +173,16 @@ class DogeClient:
         if event_name == MESSAGE:
             msg_event = parse_message_event(self, data)
             if msg_event.message.content.startswith(self.prefix):
+                try:
+                    cmd_name, content = msg_event.message.content.split(' ', 1)
+                except:
+                    cmd_name, content = msg_event.message.content.strip(), ''
+                if len(cmd_name.replace(self.prefix, '')) > 0:
+                    if cmd_name in self._commands:
+                        await self.run_callback(COMMAND_EXECUTE, parse_command_execute_event(self, msg_event))
+                    else:
+                        await self.run_callback(NON_COMMAND_EXECUTE, parse_command_execute_event(self, msg_event))
+
                 await self._run_command(msg_event)
 
         parser = self.event_parsers[event_name]
@@ -253,6 +270,14 @@ class DogeClient:
         self.event_hooks[ROOM_DEAFENED] = callback
         return callback
 
+    def on_command_execute(self, callback: Callback[CommandEvent]) -> Callback[CommandEvent]:
+        self.event_hooks[COMMAND_EXECUTE] = callback
+        return callback
+
+    def on_non_command_execute(self, callback: Callback[CommandEvent]) -> Callback[CommandEvent]:
+        self.event_hooks[NON_COMMAND_EXECUTE] = callback
+        return callback
+
     def command(self, callback: Callback[CommandEvent]) -> Callback[CommandEvent]:
         command_trigger = self.prefix + callback.__name__
         self._commands[command_trigger] = callback
@@ -261,14 +286,14 @@ class DogeClient:
     async def _run_command(self, event: MessageEvent) -> None:
         text = event.message.content
         try:
-            command_trigger, content = text.split(' ', 1)
+            command_name, content = text.split(' ', 1)
             if len(content.strip()) == 0:
                 raise ValueError
         except ValueError:
-            command_trigger, content = text.strip(), ''
+            command_name, content = text.strip(), ''
 
-        if command_trigger in self._commands:
-            callback = self._commands[command_trigger]
+        if command_name in self._commands:
+            callback = self._commands[command_name]
 
             arguments = []
             if content:
@@ -280,7 +305,7 @@ class DogeClient:
 
             modified_event = CommandEvent(
                 message=event.message,
-                command_name=command_trigger,
+                command_name=command_name,
                 arguments=arguments
             )
 
