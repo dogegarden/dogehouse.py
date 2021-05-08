@@ -260,7 +260,7 @@ class DogeClient:
 
     async def _run_command(self, event: MessageEvent) -> None:
         text = event.message.content
-        command_trigger, content = text.split(' ', 1)
+        command_trigger, _, content = text.partition(' ')
         if command_trigger in self._commands:
             callback = self._commands[command_trigger]
 
