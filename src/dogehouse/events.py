@@ -1,6 +1,6 @@
 from typing import Awaitable, Callable, Dict, List, NamedTuple, TypeVar, Union
 
-from .entities import Message, Room, RoomPreview, User, ChatMember, RoomMember, BannedUser
+from .entities import Message, Room, RoomPreview, User, ChatMember, RoomMember
 
 
 class RawEvent(NamedTuple):
@@ -49,7 +49,7 @@ class RoomMemberEvent(NamedTuple):
 
 
 class FetchRoomBannedUsersEvent(NamedTuple):
-    banned_users: List[BannedUser]
+    banned_users: List[User]
 
 
 class StateEvent(NamedTuple):

@@ -32,7 +32,7 @@ from .parsers import (
     parse_user_joined, parse_user_left,
     parse_message_deleted_event,
     parse_chat_member, parse_room_member,
-    parse_banned_room_users_fetched,
+    parse_room_banned_users_fetched,
     parse_muted_event, parse_deafened_event,
     parse_hand_raised_event,
 )
@@ -148,7 +148,7 @@ class DogeClient:
         CHAT_MEMBER_UNBANNED: parse_chat_member,
         # ROOM_MEMBER_BANNED: parse_room_member,
         # ROOM_MEMBER_UNBANNED: parse_room_member,
-        FETCHED_ROOM_BANNED_USERS: parse_banned_room_users_fetched,
+        FETCHED_ROOM_BANNED_USERS: parse_room_banned_users_fetched,
         ROOM_MUTED: parse_muted_event,
         ROOM_DEAFENED: parse_deafened_event,
         HAND_RAISED: parse_hand_raised_event,
@@ -218,23 +218,23 @@ class DogeClient:
         self.event_hooks[MESSAGE] = wrapped_callback
         return wrapped_callback
 
-    def on_message_deleted(self, callback: Callback[MessageDeleteEvent]) -> Callback[MessageDeleteEvent]:
+    def on_message_delete(self, callback: Callback[MessageDeleteEvent]) -> Callback[MessageDeleteEvent]:
         self.event_hooks[CHAT_MESSAGE_DELETED] = callback
         return callback
 
-    def on_chat_member_banned(self, callback: Callback[ChatMemberEvent]) -> Callback[ChatMemberEvent]:
+    def on_chat_member_ban(self, callback: Callback[ChatMemberEvent]) -> Callback[ChatMemberEvent]:
         self.event_hooks[CHAT_MEMBER_BANNED] = callback
         return callback
 
-    def on_chat_member_unbanned(self, callback: Callback[ChatMemberEvent]) -> Callback[ChatMemberEvent]:
+    def on_chat_member_unban(self, callback: Callback[ChatMemberEvent]) -> Callback[ChatMemberEvent]:
         self.event_hooks[CHAT_MEMBER_UNBANNED] = callback
         return callback
 
-    # def on_room_member_banned(self, callback: Callback[RoomMemberEvent]) -> Callback[RoomMemberEvent]:
+    # def on_room_member_ban(self, callback: Callback[RoomMemberEvent]) -> Callback[RoomMemberEvent]:
     #     self.event_hooks[ROOM_MEMBER_BANNED] = callback
     #     return callback
 
-    # def on_room_member_unbanned(self, callback: Callback[RoomMemberEvent]) -> Callback[RoomMemberEvent]:
+    # def on_room_member_unban(self, callback: Callback[RoomMemberEvent]) -> Callback[RoomMemberEvent]:
     #     self.event_hooks[ROOM_MEMBER_UNBANNED] = callback
     #     return callback
 
