@@ -1,14 +1,31 @@
-# dogehouse.py
+<p align="center">
+  <img src="https://cdn.discordapp.com/attachments/820450983892222022/820961073980899328/dogegarden-bottom-cropped.png" alt="DogeGarden logo" />
+</p>
+<p align="center">
+  <strong>A Python wrapper for DogeHouse 🐍</strong>
+</p>
+<p align="center">
+  <a href="https://discord.gg/Nu6KVjJYj6">
+    <img src="https://img.shields.io/discord/820442045264691201?style=for-the-badge" alt="discord - users online" />
+  </a>
+  <a href="https://pypi.org/project/dogehouse">
+    <img src="https://img.shields.io/badge/pypi-dogehouse-blue?style=for-the-badge">
+  </a>  
+</p>
 
-Python wrapper for the dogehouse API.
+<h3 align="center">
+  <a href="https://dogegarden.net">Website</a>
+  <span> · </span>  
+  <a href="https://stats.dogegarden.net">Tracker</a>
+  <span> · </span>
+  <a href="https://discord.gg/Nu6KVjJYj6">Discord</a>
+  <span> · </span>
+  <a href="https://wiki.dogegarden.net">Documentation</a>
+</h3>
 
-[![pypi](https://img.shields.io/badge/pypi-dogehouse-blue)](https://pypi.org/project/dogehouse)
+---
 
-## Documentation
-
-You can find the documentation at [The DogeGarden Wiki](https://wiki.dogegarden.net)
-
-## Installation
+## Installation   <a href="https://pypi.org/project/dogehouse"><img src="https://img.shields.io/badge/pypi-dogehouse-blue"></a>  
 
 `pip install dogehouse`
 
