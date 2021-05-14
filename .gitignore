@@ -4,3 +4,6 @@ build
 dist
 
 venv
+
+# mkdocs output directory
+site
